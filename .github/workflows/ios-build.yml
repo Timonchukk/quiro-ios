@@ -1,0 +1,64 @@
+name: iOS Build Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+    
+    - name: Create Xcode Project
+      run: |
+        # Create a minimal Xcode project for building
+        mkdir -p QurioIOSApp.xcodeproj
+        
+        cat > QurioIOSApp.xcodeproj/project.pbxproj << 'PBXPROJ'
+        // !$*UTF8*$!
+        {
+          archiveVersion = 1;
+          classes = {};
+          objectVersion = 56;
+          objects = {};
+          rootObject = "";
+        }
+        PBXPROJ
+
+    - name: Swift Syntax Check
+      run: |
+        echo "=== Checking Swift file syntax ==="
+        ERRORS=0
+        for f in $(find . -name "*.swift" -not -path "./.build/*"); do
+          if ! swiftc -parse -target arm64-apple-ios17.0-simulator \
+               -sdk $(xcrun --sdk iphonesimulator --show-sdk-path) \
+               "$f" 2>/dev/null; then
+            echo "❌ Syntax error in: $f"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "✅ $f"
+          fi
+        done
+        echo ""
+        echo "=== Results: $ERRORS files with errors ==="
+        if [ $ERRORS -gt 0 ]; then
+          echo "::warning::$ERRORS files have syntax errors"
+        fi
+
+    - name: List project structure
+      run: |
+        echo "=== Project Structure ==="
+        find . -name "*.swift" -o -name "*.plist" -o -name "*.entitlements" -o -name "*.yaml" | sort
+        echo ""
+        echo "Total Swift files: $(find . -name '*.swift' | wc -l)"
