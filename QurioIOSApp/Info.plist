@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Fix 5: Required Privacy Permissions -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Required by iOS screen broadcast system.</string>
+
+    <key>NSCameraUsageDescription</key>
+    <string>Used to capture screen content for AI analysis.</string>
+
+    <!-- ReplayKit Broadcast -->
+    <key>NSExtensionPointIdentifier</key>
+    <string>com.apple.broadcast-services-upload</string>
+
+    <!-- App Transport Security — allow local dev server -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+    </dict>
+
+    <!-- Supports Live Activities -->
+    <key>NSSupportsLiveActivities</key>
+    <true/>
+</dict>
+</plist>
