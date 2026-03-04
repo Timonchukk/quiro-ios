@@ -3,7 +3,7 @@ import Foundation
 /// Central configuration constants for the Qurio iOS app.
 enum Config {
     // MARK: - Server
-    static let serverBaseURL = "https://your-server.com"
+    static let serverBaseURL = "https://quirhelp.com"
     
     // MARK: - AI Defaults
     static let defaultAIBaseURL = "https://generativelanguage.googleapis.com/v1beta/openai"
