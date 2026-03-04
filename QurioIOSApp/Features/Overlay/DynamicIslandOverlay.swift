@@ -107,7 +107,7 @@ struct DynamicIslandOverlay: View {
             .padding(.vertical, 10)
             .background(
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(Color(red: 0.12, green: 0.12, blue: 0.15).opacity(0.92))
                     .overlay(
                         Capsule()
                             .stroke(Color.white.opacity(0.2), lineWidth: 1)
@@ -182,7 +182,7 @@ struct DynamicIslandOverlay: View {
         .frame(width: min(UIScreen.main.bounds.width - 32, 360))
         .background(
             RoundedRectangle(cornerRadius: 26)
-                .fill(.ultraThinMaterial)
+                .fill(Color(red: 0.12, green: 0.12, blue: 0.15).opacity(0.92))
                 .overlay(
                     RoundedRectangle(cornerRadius: 26)
                         .fill(
