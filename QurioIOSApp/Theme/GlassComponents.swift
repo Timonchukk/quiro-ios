@@ -5,7 +5,6 @@ import SwiftUI
 /// Full glass card with shadow — for main content areas
 struct GlassCard<Content: View>: View {
     @Environment(\.appTheme) var theme
-    @Environment(\.accessibilityContrast) var contrast
     let cornerRadius: CGFloat
     let content: () -> Content
     
@@ -19,23 +18,19 @@ struct GlassCard<Content: View>: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(contrast == .increased
-                              ? theme.glassBackgroundSolid
-                              : theme.glassBackground)
+                        .fill(theme.glassBackground)
                     
-                    if contrast != .increased {
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(theme.isDark ? 0.06 : 0.3),
-                                        Color.white.opacity(theme.isDark ? 0.01 : 0.08)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(theme.isDark ? 0.06 : 0.3),
+                                    Color.white.opacity(theme.isDark ? 0.01 : 0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                    }
+                        )
                     
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(theme.glassBorder, lineWidth: 0.5)
@@ -49,7 +44,6 @@ struct GlassCard<Content: View>: View {
 /// Glass section — lighter, no shadow, for inline sections
 struct GlassSection<Content: View>: View {
     @Environment(\.appTheme) var theme
-    @Environment(\.accessibilityContrast) var contrast
     let cornerRadius: CGFloat
     let content: () -> Content
     
@@ -62,9 +56,7 @@ struct GlassSection<Content: View>: View {
         content()
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(contrast == .increased
-                          ? theme.glassBackgroundSolid
-                          : theme.glassBackground)
+                    .fill(theme.glassBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
