@@ -121,9 +121,17 @@ struct DynamicIslandOverlay: View {
 
     private var expandedPanel: some View {
         VStack(spacing: 0) {
+            // Drag handle
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color.white.opacity(0.25))
+                .frame(width: 36, height: 5)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
+
             // Header bar with collapse/close
             HStack {
                 Button(action: {
+                    HapticManager.selection()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                         isExpanded = false
                     }
@@ -140,6 +148,7 @@ struct DynamicIslandOverlay: View {
                 Spacer()
 
                 Button(action: {
+                    HapticManager.impact(.light)
                     stopEverything()
                     withAnimation { isVisible = false }
                 }) {
@@ -151,7 +160,7 @@ struct DynamicIslandOverlay: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 14)
+            .padding(.top, 6)
             .padding(.bottom, 8)
 
             Divider().opacity(0.15)

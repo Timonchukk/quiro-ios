@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// History screen mirroring HistoryScreen.kt.
+/// History screen — glass-morphism redesign.
 /// Two sub-tabs: AI queries and Test results, with PDF export.
 struct HistoryView: View {
     @EnvironmentObject var historyRepo: HistoryRepository
@@ -18,7 +18,7 @@ struct HistoryView: View {
                 // Header
                 HStack {
                     Text("Історія")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(theme.textPrimary)
                     Spacer()
                     
@@ -33,25 +33,37 @@ struct HistoryView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 
-                // Segmented Control
-                Picker("", selection: $selectedTab) {
-                    Text("Запити").tag(0)
-                    Text("Тести").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                // Pill Segmented Control
+                pillSegmentedControl
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, DesignTokens.spacingMedium)
                 
-                // Search
-                HStack(spacing: 8) {
+                // Glass Search Bar
+                HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
+                        .font(.system(size: 15))
                         .foregroundColor(theme.textTertiary)
                     TextField("Пошук...", text: $searchText)
+                        .font(.system(size: 15))
                         .foregroundColor(theme.textPrimary)
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(theme.textTertiary)
+                        }
+                    }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(RoundedRectangle(cornerRadius: 10).fill(theme.cardBackground))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 11)
+                .background(
+                    RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                        .fill(theme.glassBackground)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                        .stroke(theme.glassBorder, lineWidth: 0.5)
+                )
                 .padding(.horizontal, 16)
                 
                 // Content
@@ -71,21 +83,69 @@ struct HistoryView: View {
         }
     }
     
+    // MARK: - Pill Segmented Control
+    
+    private var pillSegmentedControl: some View {
+        HStack(spacing: 0) {
+            pillSegment(title: "Запити", icon: "bubble.left.fill", index: 0)
+            pillSegment(title: "Тести", icon: "checkmark.circle.fill", index: 1)
+        }
+        .padding(3)
+        .background(
+            RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                .fill(theme.glassBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                .stroke(theme.glassBorder, lineWidth: 0.5)
+        )
+    }
+    
+    private func pillSegment(title: String, icon: String, index: Int) -> some View {
+        Button(action: {
+            HapticManager.selection()
+            withAnimation(.spring(response: 0.3)) { selectedTab = index }
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundColor(selectedTab == index ? .white : theme.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                Group {
+                    if selectedTab == index {
+                        RoundedRectangle(cornerRadius: DesignTokens.radiusSmall)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.accentPurple, .violet],
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
+                    }
+                }
+            )
+        }
+    }
+    
     // MARK: - Query History List
     
     private var queryHistoryList: some View {
         Group {
             if filteredHistoryEntries.isEmpty {
-                emptyState(icon: "clock", message: "Історія запитів порожня")
+                emptyState(icon: "clock.arrow.circlepath", message: "Історія запитів порожня", subtitle: "Ваші AI запити з'являться тут")
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: 10) {
                         ForEach(filteredHistoryEntries) { entry in
                             HistoryEntryCard(entry: entry)
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.top, 10)
                     .padding(.bottom, 30)
                 }
             }
@@ -97,16 +157,16 @@ struct HistoryView: View {
     private var testResultsList: some View {
         Group {
             if filteredTestResults.isEmpty {
-                emptyState(icon: "checkmark.circle", message: "Результати тестів порожні")
+                emptyState(icon: "doc.text.magnifyingglass", message: "Результати тестів порожні", subtitle: "Пройдіть тест і результат буде тут")
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: 10) {
                         ForEach(filteredTestResults) { result in
                             TestResultCard(result: result)
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.top, 10)
                     .padding(.bottom, 30)
                 }
             }
@@ -132,15 +192,29 @@ struct HistoryView: View {
     
     // MARK: - Empty State
     
-    private func emptyState(icon: String, message: String) -> some View {
-        VStack(spacing: 12) {
+    private func emptyState(icon: String, message: String, subtitle: String = "") -> some View {
+        VStack(spacing: 14) {
             Spacer()
-            Image(systemName: icon)
-                .font(.system(size: 48))
-                .foregroundColor(theme.textTertiary)
+            
+            ZStack {
+                Circle()
+                    .fill(theme.glassBackground)
+                    .frame(width: 80, height: 80)
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundColor(theme.textTertiary)
+            }
+            
             Text(message)
-                .font(.system(size: 16))
-                .foregroundColor(theme.textTertiary)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(theme.textSecondary)
+            
+            if !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.system(size: 14))
+                    .foregroundColor(theme.textTertiary)
+            }
+            
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -174,25 +248,32 @@ struct HistoryEntryCard: View {
     @State private var expanded = false
     
     var body: some View {
-        GlassSection {
+        GlassCard(cornerRadius: DesignTokens.radiusMedium) {
             VStack(alignment: .leading, spacing: 8) {
-                // Question
-                Text(entry.question)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(theme.textPrimary)
-                    .lineLimit(expanded ? nil : 2)
-                
-                // Answer
-                Text(entry.answer)
-                    .font(.system(size: 14))
-                    .foregroundColor(.accentPurple)
-                    .lineLimit(expanded ? nil : 1)
+                HStack(alignment: .top, spacing: 10) {
+                    IconCircle("questionmark", tint: .accentPurple, size: 32)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Question
+                        Text(entry.question)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(theme.textPrimary)
+                            .lineLimit(expanded ? nil : 2)
+                        
+                        // Answer
+                        Text(entry.answer)
+                            .font(.system(size: 14))
+                            .foregroundColor(.accentPurple)
+                            .lineLimit(expanded ? nil : 1)
+                    }
+                }
                 
                 // Explanation (if expanded)
                 if expanded && !entry.explanation.isEmpty {
                     Text(entry.explanation)
                         .font(.system(size: 13))
                         .foregroundColor(theme.textSecondary)
+                        .padding(.leading, 42)
                 }
                 
                 // Footer
@@ -202,7 +283,8 @@ struct HistoryEntryCard: View {
                         .foregroundColor(theme.textTertiary)
                     
                     if entry.confidence > 0 {
-                        Spacer()
+                        Text("•")
+                            .foregroundColor(theme.textTertiary)
                         Text("\(Int(entry.confidence * 100))%")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.summaryGreen)
@@ -210,14 +292,16 @@ struct HistoryEntryCard: View {
                     
                     Spacer()
                     
-                    Button(action: { withAnimation { expanded.toggle() } }) {
+                    Button(action: { withAnimation(.spring()) { expanded.toggle() } }) {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 12))
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundColor(theme.textTertiary)
+                            .padding(6)
+                            .background(Circle().fill(theme.glassBackground))
                     }
                 }
             }
-            .padding(14)
+            .padding(DesignTokens.paddingMedium)
         }
     }
     
@@ -235,18 +319,26 @@ struct TestResultCard: View {
     @Environment(\.appTheme) var theme
     let result: TestResultEntry
     
+    private var scoreColor: Color {
+        result.percentage >= 70 ? .summaryGreen : (result.percentage >= 40 ? .yellowDot : .accentRed)
+    }
+    
     var body: some View {
-        GlassSection {
+        GlassCard(cornerRadius: DesignTokens.radiusMedium) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
+                    IconCircle("doc.text.fill", tint: scoreColor, size: 32)
+                    
                     Text(result.summaryTitle.isEmpty ? "Тест" : result.summaryTitle)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                         .lineLimit(1)
+                    
                     Spacer()
+                    
                     Text("\(result.percentage)%")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(result.percentage >= 70 ? .summaryGreen : (result.percentage >= 40 ? .yellowDot : .accentRed))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(scoreColor)
                 }
                 
                 HStack(spacing: 16) {
@@ -257,13 +349,15 @@ struct TestResultCard: View {
                     Label(formatDuration(result.totalTimeMs), systemImage: "clock")
                         .font(.system(size: 13))
                         .foregroundColor(theme.textSecondary)
+                    
+                    Spacer()
+                    
+                    Text(formatDate(result.timestamp))
+                        .font(.system(size: 11))
+                        .foregroundColor(theme.textTertiary)
                 }
-                
-                Text(formatDate(result.timestamp))
-                    .font(.system(size: 11))
-                    .foregroundColor(theme.textTertiary)
             }
-            .padding(14)
+            .padding(DesignTokens.paddingMedium)
         }
     }
     

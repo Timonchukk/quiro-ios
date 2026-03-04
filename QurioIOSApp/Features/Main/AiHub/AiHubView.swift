@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// AI Hub screen mirroring AiHubScreen.kt (894 lines).
+/// AI Hub screen — glass-morphism redesign.
 /// Header with plan badge, stats row, action button, quick actions grid.
 struct AiHubView: View {
     @EnvironmentObject var settings: SettingsRepository
@@ -14,7 +14,7 @@ struct AiHubView: View {
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: DesignTokens.spacingLarge) {
                     // Header Section
                     headerSection
                     
@@ -42,46 +42,48 @@ struct AiHubView: View {
     // MARK: - Header
     
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Привіт! 👋")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(theme.textPrimary)
+        GlassCard(cornerRadius: DesignTokens.radiusXL) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingMedium) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Привіт! 👋")
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                            .foregroundColor(theme.textPrimary)
+                        
+                        Text(settings.userName.isEmpty ? "Qurio AI" : settings.userName)
+                            .font(.system(size: 15))
+                            .foregroundColor(theme.textSecondary)
+                    }
                     
-                    Text(settings.userName.isEmpty ? "Qurio AI" : settings.userName)
-                        .font(.system(size: 16))
-                        .foregroundColor(theme.textSecondary)
+                    Spacer()
+                    
+                    // Plan badge
+                    ChipBadge(
+                        settings.hasActiveSubscription ? "Pro" : "Free",
+                        icon: settings.hasActiveSubscription ? "crown.fill" : "person.fill",
+                        tint: settings.hasActiveSubscription ? .yellowDot : .accentPurple
+                    )
                 }
                 
-                Spacer()
-                
-                // Plan badge
-                ChipBadge(
-                    settings.hasActiveSubscription ? "Pro" : "Free",
-                    icon: settings.hasActiveSubscription ? "crown.fill" : "person.fill",
-                    tint: settings.hasActiveSubscription ? .yellowDot : .accentPurple
-                )
+                // Streak pill
+                if settings.currentStreakCount() > 0 {
+                    ChipBadge(
+                        "\(settings.currentStreakCount()) днів 🔥",
+                        icon: "flame.fill",
+                        tint: .streakOrange,
+                        bgAlpha: 0.15,
+                        onClick: { showStreakRewards = true }
+                    )
+                }
             }
-            
-            // Streak pill
-            if settings.currentStreakCount() > 0 {
-                ChipBadge(
-                    "\(settings.currentStreakCount()) днів 🔥",
-                    icon: "flame.fill",
-                    tint: .streakOrange,
-                    bgAlpha: 0.15,
-                    onClick: { showStreakRewards = true }
-                )
-            }
+            .padding(DesignTokens.paddingLarge)
         }
-        .padding(.top, 8)
     }
     
     // MARK: - Stats Row
     
     private var statsRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: DesignTokens.spacingMedium) {
             MiniStatCard(
                 value: settings.hasActiveSubscription ? "∞" : "\(settings.remainingTrialRequests())",
                 label: "Запитів",
@@ -109,24 +111,32 @@ struct AiHubView: View {
     
     private var actionButton: some View {
         Button(action: {
+            HapticManager.impact(.heavy)
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showOverlay.toggle()
             }
         }) {
-            HStack(spacing: 12) {
-                Image(systemName: showOverlay ? "stop.fill" : "play.fill")
-                    .font(.system(size: 22, weight: .bold))
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(showOverlay ? "Зупинити Qurio" : "Запустити Qurio")
+            HStack(spacing: 14) {
+                // Icon circle
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: showOverlay ? "stop.fill" : "play.fill")
                         .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(showOverlay ? "Зупинити Qurio" : "Запустити Qurio")
+                        .font(.system(size: 17, weight: .bold))
                     
                     if !showOverlay {
                         Text(settings.hasActiveSubscription
                              ? "Необмежені запити"
                              : "Залишилось \(settings.remainingTrialRequests()) запитів")
                             .font(.system(size: 13))
-                            .opacity(0.7)
+                            .opacity(0.75)
                     }
                 }
                 
@@ -137,7 +147,7 @@ struct AiHubView: View {
                     .opacity(0.5)
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, DesignTokens.paddingLarge)
             .padding(.vertical, 18)
             .background(
                 LinearGradient(
@@ -148,17 +158,17 @@ struct AiHubView: View {
                     endPoint: .trailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.radiusLarge))
             .shadow(
                 color: (showOverlay ? Color.accentRed : .accentPurple).opacity(0.35),
-                radius: 12, y: 6
+                radius: 14, y: 6
             )
             .scaleEffect(breathScale)
         }
         .onAppear {
             if !showOverlay {
                 withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                    breathScale = 1.03
+                    breathScale = 1.02
                 }
             }
         }
@@ -167,16 +177,16 @@ struct AiHubView: View {
     // MARK: - Quick Actions
     
     private var quickActionsGrid: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: DesignTokens.spacingMedium) {
             Text("Швидкі дії")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(theme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
+                GridItem(.flexible(), spacing: DesignTokens.spacingMedium),
+                GridItem(.flexible(), spacing: DesignTokens.spacingMedium)
+            ], spacing: DesignTokens.spacingMedium) {
                 QuickActionTile(
                     title: "Пояснення",
                     subtitle: settings.showExplanation ? "Увімкнено" : "Вимкнено",
@@ -231,14 +241,12 @@ struct MiniStatCard: View {
     let tint: Color
     
     var body: some View {
-        GlassSection {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(tint)
+        GlassCard(cornerRadius: DesignTokens.radiusLarge) {
+            VStack(spacing: 8) {
+                IconCircle(icon, tint: tint, size: 34)
                 
                 Text(value)
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(theme.textPrimary)
                 
                 Text(label)
@@ -246,7 +254,8 @@ struct MiniStatCard: View {
                     .foregroundColor(theme.textSecondary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, DesignTokens.paddingMedium)
+            .padding(.horizontal, 8)
         }
     }
 }
@@ -263,16 +272,17 @@ struct QuickActionTile: View {
     let action: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            GlassSection {
-                VStack(alignment: .leading, spacing: 8) {
+        Button(action: {
+            HapticManager.selection()
+            action()
+        }) {
+            GlassCard(cornerRadius: DesignTokens.radiusLarge) {
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Image(systemName: icon)
-                            .font(.system(size: 18))
-                            .foregroundColor(tint)
+                        IconCircle(icon, tint: tint, size: 38)
                         Spacer()
                         Circle()
-                            .fill(isActive ? tint : Color.gray.opacity(0.3))
+                            .fill(isActive ? tint : Color.gray.opacity(0.25))
                             .frame(width: 8, height: 8)
                     }
                     
@@ -284,7 +294,7 @@ struct QuickActionTile: View {
                         .font(.system(size: 12))
                         .foregroundColor(theme.textSecondary)
                 }
-                .padding(14)
+                .padding(DesignTokens.paddingMedium)
             }
         }
     }

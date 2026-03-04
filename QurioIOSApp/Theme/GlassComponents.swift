@@ -1,14 +1,15 @@
 import SwiftUI
 
-// MARK: - Glass Components (mirrors GlassComponents.kt)
+// MARK: - Glass Components
 
 /// Full glass card with shadow — for main content areas
 struct GlassCard<Content: View>: View {
     @Environment(\.appTheme) var theme
+    @Environment(\.accessibilityContrast) var contrast
     let cornerRadius: CGFloat
     let content: () -> Content
     
-    init(cornerRadius: CGFloat = 20, @ViewBuilder content: @escaping () -> Content) {
+    init(cornerRadius: CGFloat = DesignTokens.radiusLarge, @ViewBuilder content: @escaping () -> Content) {
         self.cornerRadius = cornerRadius
         self.content = content
     }
@@ -18,46 +19,41 @@ struct GlassCard<Content: View>: View {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(.ultraThinMaterial)
+                        .fill(contrast == .increased
+                              ? theme.glassBackgroundSolid
+                              : theme.glassBackground)
                     
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(theme.isDark ? 0.08 : 0.4),
-                                    Color.white.opacity(theme.isDark ? 0.02 : 0.15)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    if contrast != .increased {
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(theme.isDark ? 0.06 : 0.3),
+                                        Color.white.opacity(theme.isDark ? 0.01 : 0.08)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
+                    }
                     
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(theme.isDark ? 0.2 : 0.5),
-                                    Color.white.opacity(theme.isDark ? 0.05 : 0.15)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+                        .stroke(theme.glassBorder, lineWidth: 0.5)
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .shadow(color: Color.black.opacity(0.12), radius: 12, y: 6)
+            .shadow(color: Color.black.opacity(theme.isDark ? 0.2 : 0.08), radius: 12, y: 6)
     }
 }
 
 /// Glass section — lighter, no shadow, for inline sections
 struct GlassSection<Content: View>: View {
     @Environment(\.appTheme) var theme
+    @Environment(\.accessibilityContrast) var contrast
     let cornerRadius: CGFloat
     let content: () -> Content
     
-    init(cornerRadius: CGFloat = 16, @ViewBuilder content: @escaping () -> Content) {
+    init(cornerRadius: CGFloat = DesignTokens.radiusMedium, @ViewBuilder content: @escaping () -> Content) {
         self.cornerRadius = cornerRadius
         self.content = content
     }
@@ -66,17 +62,19 @@ struct GlassSection<Content: View>: View {
         content()
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.thinMaterial)
+                    .fill(contrast == .increased
+                          ? theme.glassBackgroundSolid
+                          : theme.glassBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.white.opacity(theme.isDark ? 0.1 : 0.3), lineWidth: 0.5)
+                    .stroke(theme.glassBorder, lineWidth: 0.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
 }
 
-/// Accent gradient button
+/// Accent gradient button with haptic feedback
 struct AccentButton: View {
     let title: String
     let icon: String?
@@ -99,7 +97,12 @@ struct AccentButton: View {
     }
     
     var body: some View {
-        Button(action: { if enabled && !isLoading { action() } }) {
+        Button(action: {
+            if enabled && !isLoading {
+                HapticManager.impact(.medium)
+                action()
+            }
+        }) {
             HStack(spacing: 8) {
                 if isLoading {
                     ProgressView()
@@ -124,7 +127,7 @@ struct AccentButton: View {
                     endPoint: .trailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.radiusMedium))
             .shadow(color: (enabled ? Color.accentPurple : .gray).opacity(0.3), radius: 8, y: 4)
         }
         .disabled(!enabled || isLoading)
@@ -145,7 +148,10 @@ struct OutlinedButton: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticManager.selection()
+            action()
+        }) {
             HStack(spacing: 8) {
                 if let icon {
                     Image(systemName: icon)
@@ -158,12 +164,12 @@ struct OutlinedButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 13)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                    .fill(theme.glassBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.accentPurple.opacity(0.4), lineWidth: 1)
+                RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
+                    .stroke(Color.accentPurple.opacity(0.35), lineWidth: 1)
             )
         }
     }
@@ -177,7 +183,7 @@ struct ChipBadge: View {
     let bgAlpha: Double
     var onClick: (() -> Void)? = nil
     
-    init(_ label: String, icon: String, tint: Color, bgAlpha: Double = 0.1, onClick: (() -> Void)? = nil) {
+    init(_ label: String, icon: String, tint: Color, bgAlpha: Double = 0.12, onClick: (() -> Void)? = nil) {
         self.label = label
         self.icon = icon
         self.tint = tint
@@ -186,23 +192,52 @@ struct ChipBadge: View {
     }
     
     var body: some View {
-        let content = HStack(spacing: 4) {
+        let content = HStack(spacing: 5) {
             Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .bold))
             Text(label)
                 .font(.system(size: 12, weight: .semibold))
         }
         .foregroundColor(tint)
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.vertical, 6)
         .background(
             Capsule().fill(tint.opacity(bgAlpha))
         )
         
         if let onClick {
-            Button(action: onClick) { content }
+            Button(action: {
+                HapticManager.selection()
+                onClick()
+            }) { content }
         } else {
             content
         }
+    }
+}
+
+
+// MARK: - Icon Circle
+
+struct IconCircle: View {
+    let icon: String
+    let tint: Color
+    let size: CGFloat
+    
+    init(_ icon: String, tint: Color, size: CGFloat = 36) {
+        self.icon = icon
+        self.tint = tint
+        self.size = size
+    }
+    
+    var body: some View {
+        Image(systemName: icon)
+            .font(.system(size: size * 0.42, weight: .semibold))
+            .foregroundColor(tint)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(tint.opacity(0.12))
+            )
     }
 }

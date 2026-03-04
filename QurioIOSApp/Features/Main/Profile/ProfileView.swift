@@ -1,7 +1,7 @@
 import SwiftUI
 import StoreKit
 
-/// Profile screen mirroring ProfileScreen.kt.
+/// Profile screen — glass-morphism redesign.
 /// User info, plan, subscription, AI/overlay/test settings, admin entry.
 struct ProfileView: View {
     @EnvironmentObject var settings: SettingsRepository
@@ -17,10 +17,10 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: DesignTokens.spacingLarge) {
                     // Header
                     Text("Профіль")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 8)
@@ -65,28 +65,30 @@ struct ProfileView: View {
     // MARK: - User Info Card
     
     private var userInfoCard: some View {
-        GlassCard {
+        GlassCard(cornerRadius: DesignTokens.radiusXL) {
             HStack(spacing: 14) {
+                // Avatar
                 ZStack {
                     Circle()
                         .fill(
                             LinearGradient(colors: [.accentPurple, .violet],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing)
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing)
                         )
-                        .frame(width: 56, height: 56)
+                        .frame(width: 52, height: 52)
                     
                     Text(String(settings.userName.prefix(1)).uppercased())
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
                 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(settings.userName)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(settings.userName.isEmpty ? "Qurio User" : settings.userName)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                     
-                    Text(settings.userEmail)
-                        .font(.system(size: 14))
+                    Text(settings.userEmail.isEmpty ? "" : settings.userEmail)
+                        .font(.system(size: 13))
                         .foregroundColor(theme.textSecondary)
                     
                     if settings.isGoogleUser {
@@ -102,7 +104,7 @@ struct ProfileView: View {
                     tint: settings.hasActiveSubscription ? .yellowDot : .accentPurple
                 )
             }
-            .padding(16)
+            .padding(DesignTokens.paddingLarge)
         }
     }
     
@@ -110,58 +112,67 @@ struct ProfileView: View {
     
     private var subscriptionCard: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingMedium) {
                 HStack {
-                    Image(systemName: "crown.fill")
-                        .foregroundColor(.yellowDot)
+                    IconCircle("crown.fill", tint: .yellowDot, size: 34)
                     Text("Підписка")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                 }
                 
+                Divider().opacity(0.15)
+                
                 if settings.hasActiveSubscription {
-                    Text("✅ Pro план активний")
-                        .font(.system(size: 14))
-                        .foregroundColor(.summaryGreen)
-                    
-                    Text("• Необмежені запити\n• Конспекти\n• Тести\n• Пріоритетна підтримка")
-                        .font(.system(size: 13))
-                        .foregroundColor(theme.textSecondary)
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundColor(.summaryGreen)
+                        Text("Pro план активний")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.summaryGreen)
+                    }
                 } else {
                     Text("Оновіть для необмежених запитів та конспектів")
                         .font(.system(size: 14))
                         .foregroundColor(theme.textSecondary)
                     
-                    ForEach(purchaseService.products, id: \.id) { product in
-                        Button(action: {
-                            Task { try? await purchaseService.purchase(product) }
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(product.displayName)
-                                        .font(.system(size: 14, weight: .semibold))
-                                    Text(product.description)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(theme.textSecondary)
+                    // IAP products
+                    if !purchaseService.products.isEmpty {
+                        ForEach(purchaseService.products, id: \.id) { product in
+                            Button(action: {
+                                HapticManager.impact(.medium)
+                                Task { await purchaseService.purchase(product) }
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(product.displayName)
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(theme.textPrimary)
+                                        Text(product.description)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(theme.textSecondary)
+                                    }
+                                    Spacer()
+                                    Text(product.displayPrice)
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundColor(.accentPurple)
                                 }
-                                Spacer()
-                                Text(product.displayPrice)
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.accentPurple)
+                                .padding(DesignTokens.paddingMedium)
+                                .background(
+                                    RoundedRectangle(cornerRadius: DesignTokens.radiusSmall)
+                                        .fill(Color.accentPurple.opacity(0.08))
+                                )
                             }
-                            .padding(12)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.accentPurple.opacity(0.08)))
                         }
                     }
                     
                     Button("Відновити покупки") {
                         Task { await purchaseService.restorePurchases() }
                     }
-                    .font(.system(size: 13))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.accentPurple)
                 }
             }
-            .padding(16)
+            .padding(DesignTokens.paddingLarge)
         }
     }
     
@@ -169,16 +180,15 @@ struct ProfileView: View {
     
     private var aiSettingsSection: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingMedium) {
                 HStack {
-                    Image(systemName: "brain")
-                        .foregroundColor(.accentPurple)
+                    IconCircle("brain", tint: .accentPurple, size: 34)
                     Text("Налаштування AI")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                 }
                 
-                Divider().opacity(0.2)
+                Divider().opacity(0.15)
                 
                 SettingsToggle(
                     title: "Пояснення",
@@ -194,7 +204,7 @@ struct ProfileView: View {
                     isOn: $settings.privacyMode
                 )
                 
-                Divider().opacity(0.2)
+                Divider().opacity(0.15)
                 
                 // Summary mode
                 VStack(alignment: .leading, spacing: 8) {
@@ -202,16 +212,13 @@ struct ProfileView: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(theme.textPrimary)
                     
-                    Picker("", selection: $settings.summaryMode) {
-                        ForEach(SummaryMode.allCases, id: \.rawValue) { mode in
-                            Label(mode.title, systemImage: mode.icon)
-                                .tag(mode.rawValue)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                    pillPicker(
+                        selection: $settings.summaryMode,
+                        options: SummaryMode.allCases.map { ($0.rawValue, $0.title) }
+                    )
                 }
                 
-                Divider().opacity(0.2)
+                Divider().opacity(0.15)
                 
                 // Theme
                 VStack(alignment: .leading, spacing: 8) {
@@ -219,31 +226,70 @@ struct ProfileView: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(theme.textPrimary)
                     
-                    Picker("", selection: $settings.themeMode) {
-                        Text("Світла").tag(1)
-                        Text("Темна").tag(2)
-                    }
-                    .pickerStyle(.segmented)
+                    pillPicker(
+                        selection: $settings.themeMode,
+                        options: [(1, "Світла"), (2, "Темна")]
+                    )
                 }
             }
-            .padding(16)
+            .padding(DesignTokens.paddingLarge)
         }
+    }
+    
+    // MARK: - Pill Picker
+    
+    private func pillPicker(selection: Binding<Int>, options: [(Int, String)]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(options, id: \.0) { option in
+                Button(action: {
+                    HapticManager.selection()
+                    withAnimation(.spring(response: 0.3)) { selection.wrappedValue = option.0 }
+                }) {
+                    Text(option.1)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(selection.wrappedValue == option.0 ? .white : theme.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                        .background(
+                            Group {
+                                if selection.wrappedValue == option.0 {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [.accentPurple, .violet],
+                                                startPoint: .leading, endPoint: .trailing
+                                            )
+                                        )
+                                }
+                            }
+                        )
+                }
+            }
+        }
+        .padding(3)
+        .background(
+            RoundedRectangle(cornerRadius: DesignTokens.radiusSmall)
+                .fill(theme.glassBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.radiusSmall)
+                .stroke(theme.glassBorder, lineWidth: 0.5)
+        )
     }
     
     // MARK: - Test Settings
     
     private var testSettingsSection: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: DesignTokens.spacingMedium) {
                 HStack {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.summaryGreen)
+                    IconCircle("checkmark.circle", tint: .summaryGreen, size: 34)
                     Text("Налаштування тестів")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                 }
                 
-                Divider().opacity(0.2)
+                Divider().opacity(0.15)
                 
                 // Question count
                 HStack {
@@ -255,6 +301,9 @@ struct ProfileView: View {
                             value: $settings.testQuestionCount,
                             in: 3...24)
                         .font(.system(size: 14))
+                        .onChange(of: settings.testQuestionCount) { _ in
+                            HapticManager.selection()
+                        }
                 }
                 
                 // Time limit
@@ -267,6 +316,9 @@ struct ProfileView: View {
                             value: $settings.testTimeLimitMinutes,
                             in: 0...60)
                         .font(.system(size: 14))
+                        .onChange(of: settings.testTimeLimitMinutes) { _ in
+                            HapticManager.selection()
+                        }
                 }
                 
                 SettingsToggle(
@@ -276,7 +328,7 @@ struct ProfileView: View {
                     isOn: $settings.testShowAnswers
                 )
             }
-            .padding(16)
+            .padding(DesignTokens.paddingLarge)
         }
     }
     
@@ -284,26 +336,29 @@ struct ProfileView: View {
     
     private var accountActionsSection: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Image(systemName: "person.circle")
-                        .foregroundColor(.accentPurple)
+                    IconCircle("person.circle", tint: .accentPurple, size: 34)
                     Text("Акаунт")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                 }
+                .padding(.bottom, DesignTokens.spacingMedium)
                 
-                Divider().opacity(0.2)
+                Divider().opacity(0.15)
                 
                 if settings.isGoogleUser {
                     Button(action: { showSetPassword = true }) {
                         SettingsRow(icon: "key", title: "Встановити пароль", tint: .accentPurple)
                     }
+                    .padding(.vertical, DesignTokens.spacingMedium)
+                    
+                    Divider().opacity(0.15)
                 }
                 
                 Button(action: {
+                    HapticManager.impact(.medium)
                     Task {
-                        // Push local data then clear everything before logout
                         await HistoryRepository.shared.pushAllToServer()
                         await HistoryRepository.shared.clearLocalData()
                         settings.logout()
@@ -311,8 +366,9 @@ struct ProfileView: View {
                 }) {
                     SettingsRow(icon: "arrow.right.square", title: "Вийти", tint: .accentRed)
                 }
+                .padding(.vertical, DesignTokens.spacingMedium)
             }
-            .padding(16)
+            .padding(DesignTokens.paddingLarge)
         }
         .alert("Встановити пароль", isPresented: $showSetPassword) {
             SecureField("Новий пароль", text: $newPassword)
@@ -329,12 +385,13 @@ struct ProfileView: View {
     // MARK: - Admin Entry
     
     private var adminEntry: some View {
-        Button(action: { showAdmin = true }) {
+        Button(action: {
+            HapticManager.selection()
+            showAdmin = true
+        }) {
             GlassCard {
                 HStack(spacing: 12) {
-                    Image(systemName: "shield.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.accentRed)
+                    IconCircle("shield.fill", tint: .accentRed, size: 34)
                     
                     Text("Адмін панель")
                         .font(.system(size: 16, weight: .semibold))
@@ -343,9 +400,10 @@ struct ProfileView: View {
                     Spacer()
                     
                     Image(systemName: "chevron.right")
+                        .font(.system(size: 13))
                         .foregroundColor(theme.textTertiary)
                 }
-                .padding(16)
+                .padding(DesignTokens.paddingLarge)
             }
         }
     }
@@ -377,6 +435,9 @@ struct SettingsToggle: View {
             }
         }
         .tint(.accentPurple)
+        .onChange(of: isOn) { _ in
+            HapticManager.selection()
+        }
     }
 }
 
@@ -388,10 +449,11 @@ struct SettingsRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
+                .font(.system(size: 15))
                 .foregroundColor(tint)
                 .frame(width: 20)
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(tint)
             Spacer()
             Image(systemName: "chevron.right")
