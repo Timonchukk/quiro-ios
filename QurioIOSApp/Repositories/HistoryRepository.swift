@@ -103,49 +103,48 @@ final class HistoryRepository: ObservableObject {
     
     // MARK: - Server Sync
     
+    /// Pull history from server into local DB.
+    /// Clears all local data first to prevent stale data from previous accounts.
     func syncFromServer() async {
+        // Clear all local data first to prevent mixing accounts
+        await clearLocalData()
+        
+        guard let container = modelContainer else { return }
+        let context = container.mainContext
+        
         // Pull history
         let serverHistory = await authRepo.pullHistoryFromServer()
-        if !serverHistory.isEmpty, let container = modelContainer {
-            let context = container.mainContext
-            let localTimestamps = Set(historyEntries.map { $0.timestamp })
-            for entry in serverHistory where !localTimestamps.contains(entry.timestamp) {
-                let he = HistoryEntry(
-                    question: entry.question,
-                    answer: entry.answer,
-                    explanation: entry.explanation ?? "",
-                    confidence: entry.confidence ?? 0,
-                    appPackage: entry.appPackage ?? "",
-                    timestamp: entry.timestamp
-                )
-                context.insert(he)
-            }
-            try? context.save()
+        for entry in serverHistory {
+            let he = HistoryEntry(
+                question: entry.question,
+                answer: entry.answer,
+                explanation: entry.explanation ?? "",
+                confidence: entry.confidence ?? 0,
+                appPackage: entry.appPackage ?? "",
+                timestamp: entry.timestamp
+            )
+            context.insert(he)
         }
         
         // Pull test results
         let serverTests = await authRepo.pullTestResultsFromServer()
-        if !serverTests.isEmpty, let container = modelContainer {
-            let context = container.mainContext
-            let localTimestamps = Set(testResults.map { $0.timestamp })
-            for result in serverTests where !localTimestamps.contains(result.timestamp) {
-                let tr = TestResultEntry(
-                    summaryTitle: result.summaryTitle ?? "",
-                    score: result.score,
-                    totalQuestions: result.totalQuestions,
-                    percentage: result.percentage,
-                    totalTimeMs: result.totalTimeMs,
-                    avgTimeMs: result.avgTimeMs,
-                    fastestMs: result.fastestMs,
-                    slowestMs: result.slowestMs,
-                    questionsJson: result.questionsJson ?? "",
-                    timestamp: result.timestamp
-                )
-                context.insert(tr)
-            }
-            try? context.save()
+        for result in serverTests {
+            let tr = TestResultEntry(
+                summaryTitle: result.summaryTitle ?? "",
+                score: result.score,
+                totalQuestions: result.totalQuestions,
+                percentage: result.percentage,
+                totalTimeMs: result.totalTimeMs,
+                avgTimeMs: result.avgTimeMs,
+                fastestMs: result.fastestMs,
+                slowestMs: result.slowestMs,
+                questionsJson: result.questionsJson ?? "",
+                timestamp: result.timestamp
+            )
+            context.insert(tr)
         }
         
+        try? context.save()
         await loadAll()
     }
     
@@ -175,6 +174,7 @@ final class HistoryRepository: ObservableObject {
         }
     }
     
+    /// Clear ALL local data (history + tests + context) — call on logout / before account switch
     func clearLocalData() async {
         guard let container = modelContainer else { return }
         let context = container.mainContext
@@ -185,5 +185,7 @@ final class HistoryRepository: ObservableObject {
             historyEntries = []
             testResults = []
         } catch {}
+        // Also clear context history
+        await ContextRepository.shared.clearAll()
     }
 }

@@ -247,11 +247,12 @@ final class AuthRepository: ObservableObject {
             let _ = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/streak",
-                    method: "POST",
+                    method: "PUT",
                     body: [
-                        "streakCount": self.settings.streakCount,
-                        "streakLastDate": self.settings.streakLastDate,
-                        "claimedRewards": self.settings.claimedRewardsRaw
+                        "count": self.settings.currentStreakCount(),
+                        "lastDate": self.settings.streakLastDate,
+                        "claimedRewards": self.settings.claimedRewardsRaw,
+                        "bonusQueries": self.settings.bonusQueries
                     ],
                     token: token
                 )

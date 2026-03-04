@@ -301,7 +301,12 @@ struct ProfileView: View {
                 }
                 
                 Button(action: {
-                    settings.logout()
+                    Task {
+                        // Push local data then clear everything before logout
+                        await HistoryRepository.shared.pushAllToServer()
+                        await HistoryRepository.shared.clearLocalData()
+                        settings.logout()
+                    }
                 }) {
                     SettingsRow(icon: "arrow.right.square", title: "Вийти", tint: .accentRed)
                 }

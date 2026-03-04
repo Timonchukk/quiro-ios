@@ -26,7 +26,11 @@ struct ContentView: View {
             // Sync on app launch if logged in
             if settings.isLoggedIn {
                 try? await authRepo.syncSettings()
+                // Same user re-opening — push local data then sync from server
+                await HistoryRepository.shared.pushAllToServer()
                 await HistoryRepository.shared.syncFromServer()
+                // Push local streak (including claimed rewards) to server
+                try? await authRepo.syncStreakToServer()
                 settings.checkRewardProExpiry()
                 await InAppPurchaseService.shared.updateSubscriptionStatus()
             }

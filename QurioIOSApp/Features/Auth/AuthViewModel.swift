@@ -49,9 +49,11 @@ final class AuthViewModel: ObservableObject {
         
         do {
             try await authRepo.login(email: loginEmail, password: loginPassword)
-            // Sync after login
+            // Sync after login — clear old data and pull new user's data
             try? await authRepo.syncSettings()
             await HistoryRepository.shared.syncFromServer()
+            // Push streak to server (preserve claimed rewards)
+            try? await authRepo.syncStreakToServer()
         } catch let error as AuthRepository.AuthError {
             if error.needsVerification {
                 verifyEmail = error.email ?? loginEmail
