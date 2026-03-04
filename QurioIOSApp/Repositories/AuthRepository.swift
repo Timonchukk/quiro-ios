@@ -283,19 +283,20 @@ final class AuthRepository: ObservableObject {
     
     func pushHistoryToServer(_ entries: [HistorySyncEntry]) async {
         do {
-            let entriesData = try entries.map { entry -> [String: Any] in
+            let entriesData = entries.map { entry -> [String: Any] in
                 [
                     "question": entry.question,
                     "answer": entry.answer,
                     "explanation": entry.explanation ?? "",
                     "confidence": entry.confidence ?? 0,
+                    "appPackage": entry.appPackage ?? "com.qurio.ios",
                     "timestamp": entry.timestamp
                 ]
             }
             let _ = try await authRequest { token in
                 try await self.network.serverRequest(
-                    endpoint: "/api/user/history/push",
-                    method: "POST",
+                    endpoint: "/api/user/history",
+                    method: "PUT",
                     body: ["entries": entriesData],
                     token: token
                 )
@@ -307,7 +308,7 @@ final class AuthRepository: ObservableObject {
         do {
             let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
-                    endpoint: "/api/user/history/pull",
+                    endpoint: "/api/user/history",
                     method: "GET",
                     token: token
                 )
@@ -317,8 +318,18 @@ final class AuthRepository: ObservableObject {
             
             return entriesArray.compactMap { dict -> HistorySyncEntry? in
                 guard let question = dict["question"] as? String,
-                      let answer = dict["answer"] as? String,
-                      let timestamp = dict["timestamp"] as? Int64 else { return nil }
+                      let answer = dict["answer"] as? String else { return nil }
+                // Timestamp can come as Int or Double from server
+                let timestamp: Int64
+                if let ts = dict["timestamp"] as? Int64 {
+                    timestamp = ts
+                } else if let ts = dict["timestamp"] as? Int {
+                    timestamp = Int64(ts)
+                } else if let ts = dict["timestamp"] as? Double {
+                    timestamp = Int64(ts)
+                } else {
+                    return nil
+                }
                 return HistorySyncEntry(
                     question: question,
                     answer: answer,
@@ -333,7 +344,7 @@ final class AuthRepository: ObservableObject {
     
     func pushTestResultsToServer(_ results: [TestResultSyncEntry]) async {
         do {
-            let resultsData = try results.map { r -> [String: Any] in
+            let resultsData = results.map { r -> [String: Any] in
                 [
                     "summaryTitle": r.summaryTitle ?? "",
                     "score": r.score,
@@ -349,8 +360,8 @@ final class AuthRepository: ObservableObject {
             }
             let _ = try await authRequest { token in
                 try await self.network.serverRequest(
-                    endpoint: "/api/user/tests/push",
-                    method: "POST",
+                    endpoint: "/api/user/test-results",
+                    method: "PUT",
                     body: ["results": resultsData],
                     token: token
                 )
@@ -362,7 +373,7 @@ final class AuthRepository: ObservableObject {
         do {
             let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
-                    endpoint: "/api/user/tests/pull",
+                    endpoint: "/api/user/test-results",
                     method: "GET",
                     token: token
                 )
@@ -371,19 +382,30 @@ final class AuthRepository: ObservableObject {
             guard let resultsArray = json["results"] as? [[String: Any]] else { return [] }
             
             return resultsArray.compactMap { dict -> TestResultSyncEntry? in
-                guard let score = dict["score"] as? Int,
-                      let total = dict["totalQuestions"] as? Int,
-                      let pct = dict["percentage"] as? Int,
-                      let timestamp = dict["timestamp"] as? Int64 else { return nil }
+                let score = (dict["score"] as? Int) ?? Int(dict["score"] as? Double ?? 0)
+                let total = (dict["totalQuestions"] as? Int) ?? Int(dict["totalQuestions"] as? Double ?? 0)
+                let pct = (dict["percentage"] as? Int) ?? Int(dict["percentage"] as? Double ?? 0)
+                // Timestamp can come as Int or Double
+                let timestamp: Int64
+                if let ts = dict["timestamp"] as? Int64 {
+                    timestamp = ts
+                } else if let ts = dict["timestamp"] as? Int {
+                    timestamp = Int64(ts)
+                } else if let ts = dict["timestamp"] as? Double {
+                    timestamp = Int64(ts)
+                } else {
+                    return nil
+                }
+                guard total > 0 else { return nil }
                 return TestResultSyncEntry(
                     summaryTitle: dict["summaryTitle"] as? String,
                     score: score,
                     totalQuestions: total,
                     percentage: pct,
-                    totalTimeMs: (dict["totalTimeMs"] as? Int64) ?? 0,
-                    avgTimeMs: (dict["avgTimeMs"] as? Int64) ?? 0,
-                    fastestMs: (dict["fastestMs"] as? Int64) ?? 0,
-                    slowestMs: (dict["slowestMs"] as? Int64) ?? 0,
+                    totalTimeMs: Int64((dict["totalTimeMs"] as? Int) ?? Int(dict["totalTimeMs"] as? Double ?? 0)),
+                    avgTimeMs: Int64((dict["avgTimeMs"] as? Int) ?? Int(dict["avgTimeMs"] as? Double ?? 0)),
+                    fastestMs: Int64((dict["fastestMs"] as? Int) ?? Int(dict["fastestMs"] as? Double ?? 0)),
+                    slowestMs: Int64((dict["slowestMs"] as? Int) ?? Int(dict["slowestMs"] as? Double ?? 0)),
                     questionsJson: dict["questionsJson"] as? String,
                     timestamp: timestamp
                 )

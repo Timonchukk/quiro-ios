@@ -20,6 +20,9 @@ struct DynamicIslandOverlay: View {
     @State private var dragOffset = CGSize.zero
     @State private var showManualPrompt = false
     @State private var manualPromptText = ""
+    @State private var testQuestions: [TestQuestion] = []
+    @State private var showTestView = false
+    @State private var isGeneratingTest = false
 
     @StateObject private var privacyManager = PrivacyManager.shared
     @StateObject private var broadcastReceiver = BroadcastReceiver.shared
@@ -76,6 +79,12 @@ struct DynamicIslandOverlay: View {
                 // Broadcast ended externally — end Live Activity
                 liveActivityManager.endLiveActivity()
                 privacyManager.resetConsent()
+            }
+        }
+        .sheet(isPresented: $showTestView) {
+            if !testQuestions.isEmpty {
+                TestView(questions: testQuestions, summaryTitle: "Конспект")
+                    .environmentObject(settings)
             }
         }
     }
@@ -405,9 +414,30 @@ struct DynamicIslandOverlay: View {
                 FormattedAIText(summary, fontSize: 14)
                     .foregroundColor(.white)
 
-                // Generate Test button
-                AccentButton("📝 Створити тест") {
-                    // Test generation will be handled by navigation
+                // Summary action buttons
+                HStack(spacing: 12) {
+                    // Generate Test button
+                    if isGeneratingTest {
+                        HStack(spacing: 8) {
+                            ProgressView().tint(.accentPurple)
+                            Text("Генерую тест...")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    } else {
+                        AccentButton("📝 Створити тест") {
+                            generateTestFromSummary(summary)
+                        }
+                    }
+                    
+                    // Copy summary
+                    Button(action: {
+                        UIPasteboard.general.string = summary
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
                 }
             }
         }
@@ -647,11 +677,29 @@ struct DynamicIslandOverlay: View {
         }
     }
 
+    private func generateTestFromSummary(_ summary: String) {
+        isGeneratingTest = true
+        Task {
+            let testResult = await llmRepo.generateTest(summaryText: summary)
+            isGeneratingTest = false
+            switch testResult {
+            case .success(let questions):
+                testQuestions = questions
+                showTestView = true
+            case .failure(let error):
+                result = AiResult(answer: "", isError: true, errorMessage: "Не вдалося створити тест: \(error.localizedDescription)")
+                withAnimation { status = .error }
+            }
+        }
+    }
+
     private func reset() {
         status = .idle
         result = nil
         summaryText = nil
         showManualPrompt = false
         manualPromptText = ""
+        testQuestions = []
+        isGeneratingTest = false
     }
 }
