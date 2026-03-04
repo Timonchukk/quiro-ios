@@ -71,15 +71,16 @@ final class BroadcastReceiver: ObservableObject {
     private func registerDarwinObserver() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         let name = CFNotificationName(Config.darwinNotificationName as CFString)
+        let observer = Unmanaged.passUnretained(self).toOpaque()
 
         // Use a static callback — Swift closures can't be used directly
         CFNotificationCenterAddObserver(
             center,
-            Unmanaged.passUnretained(self).toOpaque(),
-            { _, observer, _, _, _ in
+            observer,
+            { _, observerPtr, _, _, _ in
                 // Called on arbitrary thread — dispatch to main
-                guard let observer else { return }
-                let receiver = Unmanaged<BroadcastReceiver>.fromOpaque(observer).takeUnretainedValue()
+                guard let observerPtr else { return }
+                let receiver = Unmanaged<BroadcastReceiver>.fromOpaque(observerPtr).takeUnretainedValue()
                 Task { @MainActor in
                     receiver.onNewFrameNotification()
                 }

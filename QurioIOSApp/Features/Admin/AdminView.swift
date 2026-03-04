@@ -14,7 +14,7 @@ struct AdminView: View {
             VStack(spacing: 0) {
                 Picker("", selection: $selectedTab) {
                     Text("Ключі").tag(0)
-                    Text("Юзери").tag(1)
+                    Text("Юзері").tag(1)
                     Text("Статистика").tag(2)
                 }
                 .pickerStyle(.segmented)
@@ -65,8 +65,7 @@ struct AdminView: View {
             
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(viewModel.keys, id: \.self) { key in
-                        let keyDict = key
+                    ForEach(Array(viewModel.keys.enumerated()), id: \.offset) { _, keyDict in
                         GlassSection {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(keyDict["key"] as? String ?? "")
@@ -117,7 +116,7 @@ struct AdminView: View {
             }
             
             LazyVStack(spacing: 8) {
-                ForEach(viewModel.users, id: \.self) { user in
+                ForEach(Array(viewModel.users.enumerated()), id: \.offset) { _, user in
                     GlassSection {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
@@ -249,12 +248,5 @@ final class AdminViewModel: ObservableObject {
             newKey = ""
             keys = try await authRepo.adminGetKeys()
         } catch {}
-    }
-}
-
-// Make dictionaries Hashable for ForEach
-extension Dictionary: @retroactive Hashable where Key == String, Value == Any {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(self["_id"] as? String ?? UUID().uuidString)
     }
 }

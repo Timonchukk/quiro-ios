@@ -5,7 +5,7 @@ import Foundation
 actor RateLimiter {
     static let shared = RateLimiter()
     
-    private let maxPerMinute: Int = Config.maxRequestsPerMinute
+    private let maxPerMinute: Int = 60 // Config.maxRequestsPerMinute
     private var timestamps: [TimeInterval] = []
     
     func tryAcquire() -> Bool {
