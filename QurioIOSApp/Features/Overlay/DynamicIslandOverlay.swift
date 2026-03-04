@@ -670,6 +670,14 @@ struct DynamicIslandOverlay: View {
                 summaryText = answer.answer
                 result = AiResult(answer: "Конспект створено!", explanation: "")
                 withAnimation { status = .done }
+                // Save summary to history
+                await HistoryRepository.shared.save(
+                    question: "📝 Конспект",
+                    answer: answer.answer,
+                    explanation: "",
+                    confidence: 0.9,
+                    appPackage: "com.qurio.ios"
+                )
             case .failure(let error):
                 result = AiResult(answer: "", isError: true, errorMessage: error.localizedDescription)
                 withAnimation { status = .error }

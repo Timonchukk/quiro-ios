@@ -246,12 +246,13 @@ struct HistoryEntryCard: View {
     @Environment(\.appTheme) var theme
     let entry: HistoryEntry
     @State private var expanded = false
+    @State private var showShareSheet = false
     
     var body: some View {
         GlassCard(cornerRadius: DesignTokens.radiusMedium) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .top, spacing: 10) {
-                    IconCircle("questionmark", tint: .accentPurple, size: 32)
+                    IconCircle(entry.question.hasPrefix("📝") ? "doc.text.fill" : "questionmark", tint: .accentPurple, size: 32)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         // Question
@@ -292,6 +293,24 @@ struct HistoryEntryCard: View {
                     
                     Spacer()
                     
+                    // Actions menu
+                    Menu {
+                        Button(action: {
+                            UIPasteboard.general.string = "\(entry.question)\n\n\(entry.answer)"
+                        }) {
+                            Label("Копіювати", systemImage: "doc.on.doc")
+                        }
+                        Button(action: { showShareSheet = true }) {
+                            Label("Поділитися", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(theme.textTertiary)
+                            .padding(6)
+                            .background(Circle().fill(theme.glassBackground))
+                    }
+                    
                     Button(action: { withAnimation(.spring()) { expanded.toggle() } }) {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
                             .font(.system(size: 12, weight: .medium))
@@ -302,6 +321,9 @@ struct HistoryEntryCard: View {
                 }
             }
             .padding(DesignTokens.paddingMedium)
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: ["\(entry.question)\n\n\(entry.answer)\(entry.explanation.isEmpty ? "" : "\n\nПояснення: \(entry.explanation)")"])
         }
     }
     
@@ -317,10 +339,19 @@ struct HistoryEntryCard: View {
 
 struct TestResultCard: View {
     @Environment(\.appTheme) var theme
+    @EnvironmentObject var settings: SettingsRepository
     let result: TestResultEntry
+    @State private var showTestView = false
+    @State private var showShareSheet = false
     
     private var scoreColor: Color {
         result.percentage >= 70 ? .summaryGreen : (result.percentage >= 40 ? .yellowDot : .accentRed)
+    }
+    
+    private var decodedQuestions: [TestQuestion]? {
+        guard !result.questionsJson.isEmpty,
+              let data = result.questionsJson.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode([TestQuestion].self, from: data)
     }
     
     var body: some View {
@@ -356,8 +387,57 @@ struct TestResultCard: View {
                         .font(.system(size: 11))
                         .foregroundColor(theme.textTertiary)
                 }
+                
+                // Action buttons
+                HStack(spacing: 10) {
+                    // Retry button
+                    if decodedQuestions != nil {
+                        Button(action: { showTestView = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("Повторити")
+                            }
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.accentPurple)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule().fill(Color.accentPurple.opacity(0.12))
+                            )
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Actions menu
+                    Menu {
+                        Button(action: {
+                            UIPasteboard.general.string = "Тест: \(result.summaryTitle)\nРезультат: \(result.score)/\(result.totalQuestions) (\(result.percentage)%)\nЧас: \(formatDuration(result.totalTimeMs))"
+                        }) {
+                            Label("Копіювати", systemImage: "doc.on.doc")
+                        }
+                        Button(action: { showShareSheet = true }) {
+                            Label("Поділитися", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(theme.textTertiary)
+                            .padding(6)
+                            .background(Circle().fill(theme.glassBackground))
+                    }
+                }
             }
             .padding(DesignTokens.paddingMedium)
+        }
+        .sheet(isPresented: $showTestView) {
+            if let questions = decodedQuestions {
+                TestView(questions: questions, summaryTitle: result.summaryTitle)
+                    .environmentObject(settings)
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: ["Тест: \(result.summaryTitle)\nРезультат: \(result.score)/\(result.totalQuestions) (\(result.percentage)%)\nЧас: \(formatDuration(result.totalTimeMs))"])
         }
     }
     
