@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// Auth repository mirroring AuthRepository.kt (726 lines).
 /// All API calls to Node.js server for auth, profile, sync, admin, and reporting.

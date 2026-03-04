@@ -1,5 +1,6 @@
 import Foundation
 import StoreKit
+import Combine
 
 /// StoreKit 2 integration mirroring BillingManager.kt.
 /// Handles Free vs Pro subscription management.

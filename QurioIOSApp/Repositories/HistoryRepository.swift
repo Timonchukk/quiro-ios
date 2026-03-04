@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import Combine
 
 /// History repository mirroring HistoryRepository.kt (89 lines).
 /// Local SwiftData persistence + server sync.

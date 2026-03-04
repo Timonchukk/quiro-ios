@@ -1,6 +1,7 @@
 import Foundation
 import ReplayKit
 import UIKit
+import Combine
 
 /// Screen capture service using ReplayKit.
 /// Fix 2: Capture starts ONLY via RPSystemBroadcastPickerView — no automatic broadcast start.
