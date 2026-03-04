@@ -110,11 +110,15 @@ final class HistoryRepository: ObservableObject {
         // Clear all local data first to prevent mixing accounts
         await clearLocalData()
         
-        guard let container = modelContainer else { return }
+        guard let container = modelContainer else {
+            print("❌ HistoryRepo: No ModelContainer")
+            return
+        }
         let context = container.mainContext
         
         // Pull history
         let serverHistory = await authRepo.pullHistoryFromServer()
+        print("📥 HistoryRepo: Inserting \(serverHistory.count) history entries into local DB")
         for entry in serverHistory {
             let he = HistoryEntry(
                 question: entry.question,
@@ -129,6 +133,7 @@ final class HistoryRepository: ObservableObject {
         
         // Pull test results
         let serverTests = await authRepo.pullTestResultsFromServer()
+        print("📥 HistoryRepo: Inserting \(serverTests.count) test results into local DB")
         for result in serverTests {
             let tr = TestResultEntry(
                 summaryTitle: result.summaryTitle ?? "",
@@ -147,6 +152,7 @@ final class HistoryRepository: ObservableObject {
         
         try? context.save()
         await loadAll()
+        print("✅ HistoryRepo: Sync complete. Local: \(historyEntries.count) history, \(testResults.count) tests")
     }
     
     func pushAllToServer() async {

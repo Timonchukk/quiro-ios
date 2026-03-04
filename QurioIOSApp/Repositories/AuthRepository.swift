@@ -282,6 +282,7 @@ final class AuthRepository: ObservableObject {
     // MARK: - History Sync
     
     func pushHistoryToServer(_ entries: [HistorySyncEntry]) async {
+        guard !entries.isEmpty else { return }
         do {
             let entriesData = entries.map { entry -> [String: Any] in
                 [
@@ -293,7 +294,8 @@ final class AuthRepository: ObservableObject {
                     "timestamp": entry.timestamp
                 ]
             }
-            let _ = try await authRequest { token in
+            print("📤 Pushing \(entriesData.count) history entries to server...")
+            let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/history",
                     method: "PUT",
@@ -301,11 +303,16 @@ final class AuthRepository: ObservableObject {
                     token: token
                 )
             }
-        } catch { /* fire-and-forget */ }
+            let json = try parseJSON(data)
+            print("📤 History push result: \(json)")
+        } catch {
+            print("❌ History push error: \(error)")
+        }
     }
     
     func pullHistoryFromServer() async -> [HistorySyncEntry] {
         do {
+            print("📥 Pulling history from server...")
             let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/history",
@@ -314,35 +321,36 @@ final class AuthRepository: ObservableObject {
                 )
             }
             let json = try parseJSON(data)
-            guard let entriesArray = json["entries"] as? [[String: Any]] else { return [] }
+            guard let entriesArray = json["entries"] as? [[String: Any]] else {
+                print("❌ History pull: no 'entries' array in response. Keys: \(json.keys)")
+                return []
+            }
+            
+            print("📥 History pull: got \(entriesArray.count) entries from server")
             
             return entriesArray.compactMap { dict -> HistorySyncEntry? in
                 guard let question = dict["question"] as? String,
                       let answer = dict["answer"] as? String else { return nil }
-                // Timestamp can come as Int or Double from server
-                let timestamp: Int64
-                if let ts = dict["timestamp"] as? Int64 {
-                    timestamp = ts
-                } else if let ts = dict["timestamp"] as? Int {
-                    timestamp = Int64(ts)
-                } else if let ts = dict["timestamp"] as? Double {
-                    timestamp = Int64(ts)
-                } else {
-                    return nil
-                }
+                // NSNumber-safe timestamp parsing (JSONSerialization returns NSNumber)
+                guard let tsNumber = dict["timestamp"] as? NSNumber else { return nil }
+                let timestamp = tsNumber.int64Value
                 return HistorySyncEntry(
                     question: question,
                     answer: answer,
                     explanation: dict["explanation"] as? String,
-                    confidence: dict["confidence"] as? Double,
+                    confidence: (dict["confidence"] as? NSNumber)?.doubleValue,
                     appPackage: dict["appPackage"] as? String,
                     timestamp: timestamp
                 )
             }
-        } catch { return [] }
+        } catch {
+            print("❌ History pull error: \(error)")
+            return []
+        }
     }
     
     func pushTestResultsToServer(_ results: [TestResultSyncEntry]) async {
+        guard !results.isEmpty else { return }
         do {
             let resultsData = results.map { r -> [String: Any] in
                 [
@@ -358,7 +366,8 @@ final class AuthRepository: ObservableObject {
                     "timestamp": r.timestamp
                 ]
             }
-            let _ = try await authRequest { token in
+            print("📤 Pushing \(resultsData.count) test results to server...")
+            let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/test-results",
                     method: "PUT",
@@ -366,11 +375,16 @@ final class AuthRepository: ObservableObject {
                     token: token
                 )
             }
-        } catch { /* fire-and-forget */ }
+            let json = try parseJSON(data)
+            print("📤 Test results push result: \(json)")
+        } catch {
+            print("❌ Test results push error: \(error)")
+        }
     }
     
     func pullTestResultsFromServer() async -> [TestResultSyncEntry] {
         do {
+            print("📥 Pulling test results from server...")
             let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/test-results",
@@ -379,38 +393,37 @@ final class AuthRepository: ObservableObject {
                 )
             }
             let json = try parseJSON(data)
-            guard let resultsArray = json["results"] as? [[String: Any]] else { return [] }
+            guard let resultsArray = json["results"] as? [[String: Any]] else {
+                print("❌ Test results pull: no 'results' array. Keys: \(json.keys)")
+                return []
+            }
+            
+            print("📥 Test results pull: got \(resultsArray.count) results from server")
             
             return resultsArray.compactMap { dict -> TestResultSyncEntry? in
-                let score = (dict["score"] as? Int) ?? Int(dict["score"] as? Double ?? 0)
-                let total = (dict["totalQuestions"] as? Int) ?? Int(dict["totalQuestions"] as? Double ?? 0)
-                let pct = (dict["percentage"] as? Int) ?? Int(dict["percentage"] as? Double ?? 0)
-                // Timestamp can come as Int or Double
-                let timestamp: Int64
-                if let ts = dict["timestamp"] as? Int64 {
-                    timestamp = ts
-                } else if let ts = dict["timestamp"] as? Int {
-                    timestamp = Int64(ts)
-                } else if let ts = dict["timestamp"] as? Double {
-                    timestamp = Int64(ts)
-                } else {
-                    return nil
-                }
+                // NSNumber-safe parsing
+                guard let tsNumber = dict["timestamp"] as? NSNumber else { return nil }
+                let score = (dict["score"] as? NSNumber)?.intValue ?? 0
+                let total = (dict["totalQuestions"] as? NSNumber)?.intValue ?? 0
+                let pct = (dict["percentage"] as? NSNumber)?.intValue ?? 0
                 guard total > 0 else { return nil }
                 return TestResultSyncEntry(
                     summaryTitle: dict["summaryTitle"] as? String,
                     score: score,
                     totalQuestions: total,
                     percentage: pct,
-                    totalTimeMs: Int64((dict["totalTimeMs"] as? Int) ?? Int(dict["totalTimeMs"] as? Double ?? 0)),
-                    avgTimeMs: Int64((dict["avgTimeMs"] as? Int) ?? Int(dict["avgTimeMs"] as? Double ?? 0)),
-                    fastestMs: Int64((dict["fastestMs"] as? Int) ?? Int(dict["fastestMs"] as? Double ?? 0)),
-                    slowestMs: Int64((dict["slowestMs"] as? Int) ?? Int(dict["slowestMs"] as? Double ?? 0)),
+                    totalTimeMs: (dict["totalTimeMs"] as? NSNumber)?.int64Value ?? 0,
+                    avgTimeMs: (dict["avgTimeMs"] as? NSNumber)?.int64Value ?? 0,
+                    fastestMs: (dict["fastestMs"] as? NSNumber)?.int64Value ?? 0,
+                    slowestMs: (dict["slowestMs"] as? NSNumber)?.int64Value ?? 0,
                     questionsJson: dict["questionsJson"] as? String,
-                    timestamp: timestamp
+                    timestamp: tsNumber.int64Value
                 )
             }
-        } catch { return [] }
+        } catch {
+            print("❌ Test results pull error: \(error)")
+            return []
+        }
     }
     
     // MARK: - Report
