@@ -104,14 +104,16 @@ extension EnvironmentValues {
 
 struct CardModifier: ViewModifier {
     @Environment(\.appTheme) var theme
-    @Environment(\.accessibilityContrast) var contrast
+    @Environment(\.accessibilityContrast) var contrast: AccessibilityContrast
     let cornerRadius: CGFloat
     
     func body(content: Content) -> some View {
-        content
+        let backgroundFill = (contrast == .increased) ? theme.glassBackgroundSolid : theme.glassBackground
+        
+        return content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(contrast == .increased ? theme.glassBackgroundSolid : theme.glassBackground)
+                    .fill(backgroundFill)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)

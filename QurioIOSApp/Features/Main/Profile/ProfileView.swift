@@ -374,8 +374,12 @@ struct ProfileView: View {
             SecureField("Новий пароль", text: $newPassword)
             Button("Встановити") {
                 Task {
-                    try? await AuthRepository.shared.setPassword(password: newPassword)
-                    newPassword = ""
+                    do {
+                        try await AuthRepository.shared.setPassword(password: newPassword)
+                        newPassword = ""
+                    } catch {
+                        print("Failed to set password: \(error)")
+                    }
                 }
             }
             Button("Скасувати", role: .cancel) {}
