@@ -90,6 +90,8 @@ struct ProfileView: View {
                     Text(settings.userEmail.isEmpty ? "" : settings.userEmail)
                         .font(.system(size: 13))
                         .foregroundColor(theme.textSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     
                     if settings.isGoogleUser {
                         ChipBadge("Google", icon: "g.circle", tint: .blue)

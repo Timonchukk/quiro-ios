@@ -357,6 +357,7 @@ struct HistoryEntryCard: View {
         let pageHeight: CGFloat = 841.8
         let margin: CGFloat = 40
         let contentWidth = pageWidth - 2 * margin
+        let bottomLimit = pageHeight - margin
         
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
         
@@ -364,65 +365,103 @@ struct HistoryEntryCard: View {
             context.beginPage()
             var y: CGFloat = margin
             
-            // Title
             let titleFont = UIFont.boldSystemFont(ofSize: 22)
+            let headerFont = UIFont.boldSystemFont(ofSize: 14)
+            let bodyFont = UIFont.systemFont(ofSize: 13)
+            let boldBodyFont = UIFont.boldSystemFont(ofSize: 13)
+            
+            // Helper: draw text with auto page break, returns new Y
+            func drawText(_ text: String, font: UIFont, color: UIColor) {
+                let paragraphStyle = NSMutableParagraphStyle()
+                paragraphStyle.lineSpacing = 4
+                let attr: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: paragraphStyle]
+                
+                // Split into paragraphs to handle page breaks
+                let paragraphs = text.components(separatedBy: "\n")
+                for para in paragraphs {
+                    let trimmed = para.trimmingCharacters(in: .whitespaces)
+                    if trimmed.isEmpty {
+                        y += 8
+                        continue
+                    }
+                    
+                    // Detect markdown headers and make them bold
+                    var drawFont = font
+                    var drawText = trimmed
+                    if trimmed.hasPrefix("###") {
+                        drawText = trimmed.replacingOccurrences(of: "### ", with: "").replacingOccurrences(of: "###", with: "")
+                        drawFont = UIFont.boldSystemFont(ofSize: 14)
+                    } else if trimmed.hasPrefix("##") {
+                        drawText = trimmed.replacingOccurrences(of: "## ", with: "").replacingOccurrences(of: "##", with: "")
+                        drawFont = UIFont.boldSystemFont(ofSize: 16)
+                        y += 6
+                    } else if trimmed.hasPrefix("#") {
+                        drawText = trimmed.replacingOccurrences(of: "# ", with: "").replacingOccurrences(of: "#", with: "")
+                        drawFont = UIFont.boldSystemFont(ofSize: 18)
+                        y += 8
+                    }
+                    
+                    // Strip remaining markdown: **bold**, *italic*, `code`
+                    drawText = drawText.replacingOccurrences(of: "**", with: "")
+                    drawText = drawText.replacingOccurrences(of: "__", with: "")
+                    drawText = drawText.replacingOccurrences(of: "`", with: "")
+                    // Strip bullet markers
+                    if drawText.hasPrefix("- ") { drawText = "• " + String(drawText.dropFirst(2)) }
+                    if drawText.hasPrefix("* ") { drawText = "• " + String(drawText.dropFirst(2)) }
+                    
+                    let drawAttr: [NSAttributedString.Key: Any] = [.font: drawFont, .foregroundColor: color, .paragraphStyle: paragraphStyle]
+                    let attrStr = NSAttributedString(string: drawText, attributes: drawAttr)
+                    let rect = attrStr.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+                    
+                    if y + rect.height > bottomLimit {
+                        context.beginPage()
+                        y = margin
+                    }
+                    
+                    attrStr.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: rect.height + 4))
+                    y += rect.height + 6
+                }
+            }
+            
+            // Title
             let titleAttr: [NSAttributedString.Key: Any] = [.font: titleFont, .foregroundColor: UIColor.label]
-            let titleStr = NSAttributedString(string: "Qurio — AI Відповідь", attributes: titleAttr)
-            titleStr.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 30))
-            y += 40
+            NSAttributedString(string: entry.question.hasPrefix("📝") ? "Qurio — Конспект" : "Qurio — AI Відповідь", attributes: titleAttr)
+                .draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 30))
+            y += 36
             
             // Date
-            let dateFont = UIFont.systemFont(ofSize: 12)
-            let dateAttr: [NSAttributedString.Key: Any] = [.font: dateFont, .foregroundColor: UIColor.secondaryLabel]
-            let dateStr = NSAttributedString(string: formatDate(entry.timestamp), attributes: dateAttr)
-            dateStr.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 18))
-            y += 30
-            
-            // Question header
-            let headerFont = UIFont.boldSystemFont(ofSize: 14)
-            let headerAttr: [NSAttributedString.Key: Any] = [.font: headerFont, .foregroundColor: UIColor.systemPurple]
-            let qHeader = NSAttributedString(string: "Питання:", attributes: headerAttr)
-            qHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
+            let dateAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 11), .foregroundColor: UIColor.secondaryLabel]
+            NSAttributedString(string: formatDate(entry.timestamp), attributes: dateAttr)
+                .draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 16))
             y += 24
             
-            // Question text
-            let bodyFont = UIFont.systemFont(ofSize: 14)
-            let bodyAttr: [NSAttributedString.Key: Any] = [.font: bodyFont, .foregroundColor: UIColor.label]
-            let qText = NSAttributedString(string: entry.question, attributes: bodyAttr)
-            let qRect = qText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
-            qText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: qRect.height + 4))
-            y += qRect.height + 20
+            // Separator line
+            UIColor.separator.setStroke()
+            let line = UIBezierPath()
+            line.move(to: CGPoint(x: margin, y: y))
+            line.addLine(to: CGPoint(x: pageWidth - margin, y: y))
+            line.lineWidth = 0.5
+            line.stroke()
+            y += 16
             
-            // Answer header
-            let aHeader = NSAttributedString(string: "Відповідь:", attributes: headerAttr)
-            aHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
-            y += 24
-            
-            // Answer text
-            let aText = NSAttributedString(string: entry.answer, attributes: bodyAttr)
-            let aRect = aText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
-            
-            // Check if we need a new page
-            if y + aRect.height > pageHeight - margin {
-                context.beginPage()
-                y = margin
+            // Content
+            if !entry.question.hasPrefix("📝") {
+                // Regular Q&A
+                drawText("Питання:", font: headerFont, color: .systemPurple)
+                y += 4
+                drawText(entry.question, font: bodyFont, color: .label)
+                y += 12
+                drawText("Відповідь:", font: headerFont, color: .systemPurple)
+                y += 4
             }
-            aText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: aRect.height + 4))
-            y += aRect.height + 20
             
-            // Explanation (if any)
+            drawText(entry.answer, font: bodyFont, color: .label)
+            
             if !entry.explanation.isEmpty {
-                let eHeader = NSAttributedString(string: "Пояснення:", attributes: headerAttr)
-                eHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
-                y += 24
-                
-                let eText = NSAttributedString(string: entry.explanation, attributes: bodyAttr)
-                let eRect = eText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
-                if y + eRect.height > pageHeight - margin {
-                    context.beginPage()
-                    y = margin
-                }
-                eText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: eRect.height + 4))
+                y += 12
+                drawText("Пояснення:", font: headerFont, color: .systemPurple)
+                y += 4
+                drawText(entry.explanation, font: bodyFont, color: .label)
             }
         }
     }
