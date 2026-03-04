@@ -210,6 +210,11 @@ final class AuthRepository: ObservableObject {
         
         let json = try parseJSON(data)
         applySyncSettings(json)
+        
+        // If server didn't return an apiKey, request one (mirrors Android)
+        if settings.apiKey.isEmpty {
+            await requestApiKey()
+        }
     }
     
     private func applySyncSettings(_ json: [String: Any]) {
@@ -257,6 +262,27 @@ final class AuthRepository: ObservableObject {
                     ],
                     token: token
                 )
+            }
+        } catch { /* fire-and-forget */ }
+    }
+    
+    // MARK: - Request API Key
+    
+    /// Requests an API key assignment from the server pool.
+    /// Called automatically after syncSettings if no key is present.
+    func requestApiKey() async {
+        do {
+            let (data, response) = try await authRequest { token in
+                try await self.network.serverRequest(
+                    endpoint: "/api/keys/assign",
+                    method: "POST",
+                    body: [:],
+                    token: token
+                )
+            }
+            let json = try parseJSON(data)
+            if let key = json["apiKey"] as? String, !key.isEmpty {
+                settings.apiKey = key
             }
         } catch { /* fire-and-forget */ }
     }
