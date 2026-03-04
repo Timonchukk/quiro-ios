@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /// Test view mirroring TestScreen.kt.
 /// Multiple-choice quiz with timer, question navigation, and results review.
@@ -331,6 +332,10 @@ final class TestViewModel: ObservableObject {
         if settings.testTimeLimitMinutes > 0 {
             startTimer()
         }
+    }
+    
+    deinit {
+        timer?.invalidate()
     }
     
     func selectAnswer(_ index: Int) {

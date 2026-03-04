@@ -1,34 +1,17 @@
 import ActivityKit
 import SwiftUI
+import WidgetKit
+import AppIntents
 
 /// Fix 4: Live Activity data model for Dynamic Island.
 /// Defines the attributes and state displayed in the Dynamic Island and Lock Screen.
-struct QuiroActivityAttributes: ActivityAttributes {
-    /// Static data that doesn't change during the activity
-    struct ContentState: Codable, Hashable {
-        /// Current recording status
-        var status: RecordingStatus
-        /// Number of frames processed
-        var framesProcessed: Int
-        /// Latest AI processing state description
-        var statusText: String
-
-        enum RecordingStatus: String, Codable, Hashable {
-            case recording
-            case processing
-            case idle
-            case error
-        }
-    }
-
-    /// App name shown in compact presentation
-    var appName: String = "Quiro"
-}
+/// NOTE: QuiroActivityAttributes is defined in LiveActivityManager.swift (single shared definition).
 
 // MARK: - Live Activity Widget Definition
 
 /// The actual Live Activity widget that renders in the Dynamic Island and Lock Screen.
 /// This must be included in a Widget Extension target.
+@available(iOS 17.0, *)
 struct QuiroLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: QuiroActivityAttributes.self) { context in
@@ -131,9 +114,8 @@ struct QuiroLiveActivity: Widget {
 
 // MARK: - Stop Broadcast App Intent (iOS 17+)
 
-import AppIntents
-
 /// App Intent triggered by the "Stop" button in Dynamic Island
+@available(iOS 17.0, *)
 struct StopBroadcastIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Зупинити запис"
     static var description = IntentDescription("Зупиняє запис екрану Quiro")

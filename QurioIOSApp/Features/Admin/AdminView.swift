@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /// Admin panel mirroring AdminScreen.kt.
 /// API keys CRUD, user management, stats dashboard.
