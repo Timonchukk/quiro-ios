@@ -37,7 +37,9 @@ final class BroadcastReceiver: ObservableObject {
 
     deinit {
         pollTimer?.invalidate()
-        unregisterDarwinObserver()
+        // Call directly to avoid @MainActor isolation issue in deinit
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterRemoveEveryObserver(center, Unmanaged.passUnretained(self).toOpaque())
     }
 
     // MARK: - Broadcast State Polling
