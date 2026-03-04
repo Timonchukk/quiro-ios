@@ -140,7 +140,7 @@ struct ProfileView: View {
                         ForEach(purchaseService.products, id: \.id) { product in
                             Button(action: {
                                 HapticManager.impact(.medium)
-                                Task { await purchaseService.purchase(product) }
+                                Task { try? await purchaseService.purchase(product) }
                             }) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {

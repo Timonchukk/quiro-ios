@@ -104,11 +104,13 @@ extension EnvironmentValues {
 
 struct CardModifier: ViewModifier {
     @Environment(\.appTheme) var theme
-    @Environment(\.accessibilityContrast) var contrast: AccessibilityContrast
+    @Environment(\.accessibilityContrast) var contrast
     let cornerRadius: CGFloat
     
     func body(content: Content) -> some View {
-        let backgroundFill = (contrast == .increased) ? theme.glassBackgroundSolid : theme.glassBackground
+        // Use full path to avoid ambiguity in some SDK versions
+        let isIncreased = contrast == .increased
+        let backgroundFill = isIncreased ? theme.glassBackgroundSolid : theme.glassBackground
         
         return content
             .background(
