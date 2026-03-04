@@ -260,10 +260,15 @@ struct DynamicIslandOverlay: View {
                 }
             }
 
-            // Summary Mode
+            // Summary Mode — visible for all users, Pro-gated on action
             if settings.hasActiveSubscription {
                 OutlinedButton("📝 Конспект (\(settings.remainingSummaries()) зал.)", icon: "doc.text") {
                     startSummaryMode()
+                }
+            } else {
+                OutlinedButton("📝 Конспект (Pro ⭐)", icon: "doc.text") {
+                    result = AiResult(answer: "", isError: true, errorMessage: "Конспекти доступні тільки для Pro ⭐")
+                    withAnimation { status = .error }
                 }
             }
 

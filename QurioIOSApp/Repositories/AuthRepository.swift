@@ -473,7 +473,7 @@ final class AuthRepository: ObservableObject {
     func adminSetUserPro(userId: String, pro: Bool) async throws {
         let _ = try await authRequest { token in
             try await self.network.serverRequest(
-                endpoint: "/api/admin/users/\(userId)/pro",
+                endpoint: "/api/admin/users/\(userId)/set-pro",
                 method: "POST",
                 body: ["pro": pro],
                 token: token
@@ -607,9 +607,28 @@ final class AuthRepository: ObservableObject {
         if let name = user["name"] as? String { settings.userName = name }
         if let email = user["email"] as? String { settings.userEmail = email }
         if let google = user["isGoogleUser"] as? Bool { settings.isGoogleUser = google }
-        if let sub = user["hasActiveSubscription"] as? Bool { settings.hasActiveSubscription = sub }
+        // Pro status: check both formats — server returns subscription.active, 
+        // Android-style sync returns hasActiveSubscription
+        if let sub = user["hasActiveSubscription"] as? Bool {
+            settings.hasActiveSubscription = sub
+        } else if let subscription = user["subscription"] as? [String: Any],
+                  let active = subscription["active"] as? Bool {
+            settings.hasActiveSubscription = active
+        }
         if let key = user["apiKey"] as? String { settings.apiKey = key }
-        if let streak = user["streakCount"] as? Int { settings.streakCount = streak }
+        // Streak: check both formats — streakCount or streak.count
+        if let streak = user["streakCount"] as? Int {
+            settings.streakCount = streak
+        } else if let streakObj = user["streak"] as? [String: Any],
+                  let count = streakObj["count"] as? Int {
+            settings.streakCount = count
+            if let last = streakObj["lastDate"] as? String {
+                settings.streakLastDate = last
+            }
+            if let claimed = streakObj["claimedRewards"] as? String {
+                settings.restoreClaimedRewards(serverClaimed: claimed)
+            }
+        }
         if let last = user["streakLastDate"] as? String { settings.streakLastDate = last }
         if let claimed = user["claimedRewards"] as? String {
             settings.restoreClaimedRewards(serverClaimed: claimed)

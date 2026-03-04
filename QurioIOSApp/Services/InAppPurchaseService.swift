@@ -88,7 +88,13 @@ final class InAppPurchaseService: ObservableObject {
             hasActive = true
         }
         
-        settings.hasActiveSubscription = hasActive
+        // IMPORTANT: Only UPGRADE to Pro from StoreKit, never DOWNGRADE.
+        // The server may have set hasActiveSubscription=true (e.g. Android/admin subscription).
+        // StoreKit should not override server-synced Pro status.
+        if hasActive {
+            settings.hasActiveSubscription = true
+        }
+        // If StoreKit says false, keep whatever the server said — don't reset.
     }
     
     // MARK: - Transaction Listener
