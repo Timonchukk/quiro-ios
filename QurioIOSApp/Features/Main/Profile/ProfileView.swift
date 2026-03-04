@@ -378,7 +378,7 @@ struct ProfileView: View {
                         try await AuthRepository.shared.setPassword(password: newPassword)
                         newPassword = ""
                     } catch {
-                        print("Failed to set password: \(error)")
+                        print("Failed: \(error)")
                     }
                 }
             }
