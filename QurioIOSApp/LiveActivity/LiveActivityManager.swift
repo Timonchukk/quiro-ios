@@ -1,5 +1,24 @@
 import ActivityKit
 import Foundation
+import Combine
+
+// MARK: - Activity Attributes (shared between app and widget extension)
+
+struct QuiroActivityAttributes: ActivityAttributes {
+    struct ContentState: Codable, Hashable {
+        var status: RecordingStatus
+        var framesProcessed: Int
+        var statusText: String
+
+        enum RecordingStatus: String, Codable, Hashable {
+            case recording
+            case processing
+            case idle
+            case error
+        }
+    }
+    var appName: String = "Quiro"
+}
 
 /// Fix 4: Manages Live Activity lifecycle for Dynamic Island integration.
 /// Starts when broadcast begins, updates during AI processing, stops when broadcast ends.
