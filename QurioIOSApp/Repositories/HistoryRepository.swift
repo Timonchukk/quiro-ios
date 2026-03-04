@@ -21,7 +21,8 @@ final class HistoryRepository: ObservableObject {
             // Test if tables actually exist by doing a quick fetch
             let context = container.mainContext
             do {
-                let descriptor = FetchDescriptor<HistoryEntry>(fetchLimit: 1)
+                var descriptor = FetchDescriptor<HistoryEntry>()
+                descriptor.fetchLimit = 1
                 _ = try context.fetch(descriptor)
                 print("✅ HistoryRepo: ModelContainer OK")
             } catch {
