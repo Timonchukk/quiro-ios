@@ -12,7 +12,8 @@ final class ContextRepository {
     
     private init() {
         do {
-            modelContainer = try ModelContainer(for: ContextEntry.self)
+            // MUST include ALL SwiftData models — they share the same default.store file
+            modelContainer = try ModelContainer(for: ContextEntry.self, HistoryEntry.self, TestResultEntry.self)
         } catch {
             print("ContextRepository: Failed to create ModelContainer: \(error)")
         }

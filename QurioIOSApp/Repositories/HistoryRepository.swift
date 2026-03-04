@@ -38,7 +38,8 @@ final class HistoryRepository: ObservableObject {
     
     private static func createContainer() -> ModelContainer? {
         do {
-            return try ModelContainer(for: HistoryEntry.self, TestResultEntry.self)
+            // MUST include ALL SwiftData models — they share the same default.store file
+            return try ModelContainer(for: HistoryEntry.self, TestResultEntry.self, ContextEntry.self)
         } catch {
             print("❌ HistoryRepo: Failed to create ModelContainer: \(error)")
             return nil
