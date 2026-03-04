@@ -207,6 +207,12 @@ final class AuthRepository: ObservableObject {
         if let apiKey = json["apiKey"] as? String, !apiKey.isEmpty {
             settings.apiKey = apiKey
         }
+        if let baseUrl = json["baseUrl"] as? String, !baseUrl.isEmpty {
+            settings.apiBaseUrl = baseUrl
+        }
+        if let model = json["model"] as? String, !model.isEmpty {
+            settings.modelName = model
+        }
         if let sub = json["hasActiveSubscription"] as? Bool {
             settings.hasActiveSubscription = sub
         }
