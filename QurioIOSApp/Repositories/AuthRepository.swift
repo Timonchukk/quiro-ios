@@ -186,24 +186,10 @@ final class AuthRepository: ObservableObject {
     // MARK: - Sync Settings
     
     func syncSettings() async throws {
-        let body: [String: Any] = [
-            "streakCount": settings.streakCount,
-            "streakLastDate": settings.streakLastDate,
-            "claimedRewards": settings.claimedRewardsRaw,
-            "settings": [
-                "showExplanation": settings.showExplanation,
-                "summaryMode": settings.summaryMode,
-                "testQuestionCount": settings.testQuestionCount,
-                "testTimeLimitMinutes": settings.testTimeLimitMinutes,
-                "testShowAnswers": settings.testShowAnswers
-            ] as [String: Any]
-        ]
-        
         let (data, _) = try await authRequest { token in
             try await self.network.serverRequest(
-                endpoint: "/api/settings/sync",
-                method: "POST",
-                body: body,
+                endpoint: "/api/settings",
+                method: "GET",
                 token: token
             )
         }
