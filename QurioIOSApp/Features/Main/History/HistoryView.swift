@@ -247,6 +247,7 @@ struct HistoryEntryCard: View {
     let entry: HistoryEntry
     @State private var expanded = false
     @State private var showShareSheet = false
+    @State private var showPdfShare = false
     
     var body: some View {
         GlassCard(cornerRadius: DesignTokens.radiusMedium) {
@@ -303,6 +304,9 @@ struct HistoryEntryCard: View {
                         Button(action: { showShareSheet = true }) {
                             Label("Поділитися", systemImage: "square.and.arrow.up")
                         }
+                        Button(action: { showPdfShare = true }) {
+                            Label("Експорт PDF", systemImage: "doc.richtext")
+                        }
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 14, weight: .medium))
@@ -325,6 +329,13 @@ struct HistoryEntryCard: View {
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: ["\(entry.question)\n\n\(entry.answer)\(entry.explanation.isEmpty ? "" : "\n\nПояснення: \(entry.explanation)")"])
         }
+        .sheet(isPresented: $showPdfShare) {
+            if let pdfData = generatePDF(for: entry) {
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Qurio_\(formatDateFile(entry.timestamp)).pdf")
+                let _ = try? pdfData.write(to: tempURL)
+                ShareSheet(items: [tempURL])
+            }
+        }
     }
     
     private func formatDate(_ timestamp: Int64) -> String {
@@ -332,6 +343,88 @@ struct HistoryEntryCard: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd.MM.yyyy HH:mm"
         return formatter.string(from: date)
+    }
+    
+    private func formatDateFile(_ timestamp: Int64) -> String {
+        let date = Date(timeIntervalSince1970: Double(timestamp) / 1000)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm"
+        return formatter.string(from: date)
+    }
+    
+    private func generatePDF(for entry: HistoryEntry) -> Data? {
+        let pageWidth: CGFloat = 595.2 // A4
+        let pageHeight: CGFloat = 841.8
+        let margin: CGFloat = 40
+        let contentWidth = pageWidth - 2 * margin
+        
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
+        
+        return renderer.pdfData { context in
+            context.beginPage()
+            var y: CGFloat = margin
+            
+            // Title
+            let titleFont = UIFont.boldSystemFont(ofSize: 22)
+            let titleAttr: [NSAttributedString.Key: Any] = [.font: titleFont, .foregroundColor: UIColor.label]
+            let titleStr = NSAttributedString(string: "Qurio — AI Відповідь", attributes: titleAttr)
+            titleStr.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 30))
+            y += 40
+            
+            // Date
+            let dateFont = UIFont.systemFont(ofSize: 12)
+            let dateAttr: [NSAttributedString.Key: Any] = [.font: dateFont, .foregroundColor: UIColor.secondaryLabel]
+            let dateStr = NSAttributedString(string: formatDate(entry.timestamp), attributes: dateAttr)
+            dateStr.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 18))
+            y += 30
+            
+            // Question header
+            let headerFont = UIFont.boldSystemFont(ofSize: 14)
+            let headerAttr: [NSAttributedString.Key: Any] = [.font: headerFont, .foregroundColor: UIColor.systemPurple]
+            let qHeader = NSAttributedString(string: "Питання:", attributes: headerAttr)
+            qHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
+            y += 24
+            
+            // Question text
+            let bodyFont = UIFont.systemFont(ofSize: 14)
+            let bodyAttr: [NSAttributedString.Key: Any] = [.font: bodyFont, .foregroundColor: UIColor.label]
+            let qText = NSAttributedString(string: entry.question, attributes: bodyAttr)
+            let qRect = qText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
+            qText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: qRect.height + 4))
+            y += qRect.height + 20
+            
+            // Answer header
+            let aHeader = NSAttributedString(string: "Відповідь:", attributes: headerAttr)
+            aHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
+            y += 24
+            
+            // Answer text
+            let aText = NSAttributedString(string: entry.answer, attributes: bodyAttr)
+            let aRect = aText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
+            
+            // Check if we need a new page
+            if y + aRect.height > pageHeight - margin {
+                context.beginPage()
+                y = margin
+            }
+            aText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: aRect.height + 4))
+            y += aRect.height + 20
+            
+            // Explanation (if any)
+            if !entry.explanation.isEmpty {
+                let eHeader = NSAttributedString(string: "Пояснення:", attributes: headerAttr)
+                eHeader.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 20))
+                y += 24
+                
+                let eText = NSAttributedString(string: entry.explanation, attributes: bodyAttr)
+                let eRect = eText.boundingRect(with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin], context: nil)
+                if y + eRect.height > pageHeight - margin {
+                    context.beginPage()
+                    y = margin
+                }
+                eText.draw(in: CGRect(x: margin, y: y, width: contentWidth, height: eRect.height + 4))
+            }
+        }
     }
 }
 

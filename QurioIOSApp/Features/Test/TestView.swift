@@ -94,14 +94,8 @@ struct TestView: View {
                 .padding(.vertical, 12)
             }
             
-            // Navigation
+            // Navigation (no back button — sequential only)
             HStack(spacing: 12) {
-                if viewModel.currentIndex > 0 {
-                    OutlinedButton("← Назад") {
-                        viewModel.previousQuestion()
-                    }
-                }
-                
                 if viewModel.currentIndex < viewModel.questions.count - 1 {
                     AccentButton("Далі →") {
                         viewModel.nextQuestion()
@@ -223,15 +217,17 @@ struct OptionButton: View {
                     .font(.system(size: 15))
                     .foregroundColor(theme.textPrimary)
                     .multilineTextAlignment(.leading)
-                
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 
                 if let isCorrect {
                     Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(isCorrect ? .summaryGreen : .accentRed)
+                        .frame(width: 20)
                 }
             }
-            .padding(14)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 48)
             .background(
                 RoundedRectangle(cornerRadius: 14)
                     .fill(isSelected ? Color.accentPurple.opacity(0.08) : theme.cardBackground.opacity(0.5))
@@ -258,17 +254,27 @@ struct QuestionReviewCard: View {
                 Text("\(index + 1). \(question.question)")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(theme.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 
                 ForEach(Array(question.options.enumerated()), id: \.offset) { i, option in
                     HStack(spacing: 8) {
                         Image(systemName: i == question.correctIndex ? "checkmark.circle.fill" : (i == selectedAnswer ? "xmark.circle.fill" : "circle"))
                             .font(.system(size: 14))
                             .foregroundColor(i == question.correctIndex ? .summaryGreen : (i == selectedAnswer ? .accentRed : theme.textTertiary))
+                            .frame(width: 18)
                         
                         Text(option)
                             .font(.system(size: 13))
                             .foregroundColor(i == question.correctIndex ? .summaryGreen : (i == selectedAnswer && i != question.correctIndex ? .accentRed : theme.textSecondary))
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(i == question.correctIndex ? Color.summaryGreen.opacity(0.08) : (i == selectedAnswer && i != question.correctIndex ? Color.accentRed.opacity(0.08) : Color.clear))
+                    )
                 }
             }
             .padding(14)

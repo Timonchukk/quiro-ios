@@ -242,7 +242,7 @@ final class AuthRepository: ObservableObject {
     
     func syncStreakToServer() async {
         do {
-            let _ = try await authRequest { token in
+            let (data, _) = try await authRequest { token in
                 try await self.network.serverRequest(
                     endpoint: "/api/user/streak",
                     method: "PUT",
@@ -255,7 +255,26 @@ final class AuthRepository: ObservableObject {
                     token: token
                 )
             }
-        } catch { /* fire-and-forget */ }
+            // Read back merged streak from server (source of truth)
+            let json = try parseJSON(data)
+            if let streak = json["streak"] as? [String: Any] {
+                if let count = (streak["count"] as? NSNumber)?.intValue {
+                    settings.streakCount = count
+                }
+                if let lastDate = streak["lastDate"] as? String {
+                    settings.streakLastDate = lastDate
+                }
+                if let claimed = streak["claimedRewards"] as? String {
+                    settings.restoreClaimedRewards(serverClaimed: claimed)
+                }
+                if let bonus = (streak["bonusQueries"] as? NSNumber)?.intValue {
+                    settings.bonusQueries = max(settings.bonusQueries, bonus)
+                }
+                print("✅ Streak synced from server: count=\(streak["count"] ?? 0), claimed=\(streak["claimedRewards"] ?? "")")
+            }
+        } catch {
+            print("❌ Streak sync error: \(error)")
+        }
     }
     
     // MARK: - Request API Key
