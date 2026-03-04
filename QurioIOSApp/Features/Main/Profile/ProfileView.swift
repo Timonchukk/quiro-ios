@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 /// Profile screen mirroring ProfileScreen.kt.
 /// User info, plan, subscription, AI/overlay/test settings, admin entry.
