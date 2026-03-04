@@ -191,7 +191,6 @@ struct AiHubView: View {
                     title: "Пояснення",
                     subtitle: settings.showExplanation ? "Увімкнено" : "Вимкнено",
                     icon: "lightbulb.fill",
-                    tint: .yellowDot,
                     isActive: settings.showExplanation
                 ) {
                     settings.showExplanation.toggle()
@@ -201,7 +200,6 @@ struct AiHubView: View {
                     title: "Конспект",
                     subtitle: SummaryMode(rawValue: settings.summaryMode)?.title ?? "Детальний",
                     icon: "doc.text.fill",
-                    tint: .summaryGreen,
                     isActive: true
                 ) {
                     settings.summaryMode = (settings.summaryMode + 1) % 3
@@ -211,7 +209,6 @@ struct AiHubView: View {
                     title: "Тема",
                     subtitle: settings.themeMode == 2 ? "Темна" : "Світла",
                     icon: settings.themeMode == 2 ? "moon.fill" : "sun.max.fill",
-                    tint: .violet,
                     isActive: settings.themeMode == 2
                 ) {
                     settings.themeMode = settings.themeMode == 2 ? 1 : 2
@@ -221,7 +218,6 @@ struct AiHubView: View {
                     title: "Приватність",
                     subtitle: settings.privacyMode ? "Увімкнено" : "Вимкнено",
                     icon: "lock.shield.fill",
-                    tint: .accentPurple,
                     isActive: settings.privacyMode
                 ) {
                     settings.privacyMode.toggle()
@@ -267,7 +263,6 @@ struct QuickActionTile: View {
     let title: String
     let subtitle: String
     let icon: String
-    let tint: Color
     let isActive: Bool
     let action: () -> Void
     
@@ -279,10 +274,24 @@ struct QuickActionTile: View {
             GlassCard(cornerRadius: DesignTokens.radiusLarge) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        IconCircle(icon, tint: tint, size: 38)
+                        // Unified gradient icon circle (like Android)
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.accentPurple, .violet],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 38, height: 38)
+                            Image(systemName: icon)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
                         Spacer()
                         Circle()
-                            .fill(isActive ? tint : Color.gray.opacity(0.25))
+                            .fill(isActive ? Color.accentPurple : Color.gray.opacity(0.25))
                             .frame(width: 8, height: 8)
                     }
                     
