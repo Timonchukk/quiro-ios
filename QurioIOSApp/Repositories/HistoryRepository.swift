@@ -16,12 +16,46 @@ final class HistoryRepository: ObservableObject {
     @Published var testResults: [TestResultEntry] = []
     
     private init() {
-        do {
-            modelContainer = try ModelContainer(for: HistoryEntry.self, TestResultEntry.self)
+        modelContainer = Self.createContainer()
+        if let container = modelContainer {
+            // Test if tables actually exist by doing a quick fetch
+            let context = container.mainContext
+            do {
+                let descriptor = FetchDescriptor<HistoryEntry>(fetchLimit: 1)
+                _ = try context.fetch(descriptor)
+                print("✅ HistoryRepo: ModelContainer OK")
+            } catch {
+                // Tables missing — delete old store and recreate
+                print("⚠️ HistoryRepo: Tables missing, recreating store...")
+                Self.deleteStore()
+                modelContainer = Self.createContainer()
+                print("✅ HistoryRepo: Store recreated")
+            }
             Task { await loadAll() }
-        } catch {
-            print("HistoryRepository: Failed to create ModelContainer: \(error)")
         }
+    }
+    
+    private static func createContainer() -> ModelContainer? {
+        do {
+            return try ModelContainer(for: HistoryEntry.self, TestResultEntry.self)
+        } catch {
+            print("❌ HistoryRepo: Failed to create ModelContainer: \(error)")
+            return nil
+        }
+    }
+    
+    private static func deleteStore() {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let storeURL = appSupport.appendingPathComponent("default.store")
+        for ext in ["", "-wal", "-shm"] {
+            let fileURL = ext.isEmpty ? storeURL : storeURL.appendingPathExtension(ext.replacingOccurrences(of: "-", with: ""))
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+        // Also try the exact paths SwiftData might use
+        let altURL = appSupport.appendingPathComponent("default.store")
+        try? FileManager.default.removeItem(at: altURL)
+        try? FileManager.default.removeItem(at: URL(fileURLWithPath: altURL.path + "-wal"))
+        try? FileManager.default.removeItem(at: URL(fileURLWithPath: altURL.path + "-shm"))
     }
     
     // MARK: - History
