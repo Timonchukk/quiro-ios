@@ -71,12 +71,15 @@ struct DynamicIslandOverlay: View {
                     .transition(.opacity)
             }
         }
-        .onChange(of: broadcastReceiver.isBroadcastActive) { active in
-            if active {
+        .onChange(of: broadcastReceiver.isBroadcastActive) { oldValue, newValue in
+            print("🟢 DynamicIslandOverlay: broadcast state changed \(oldValue) → \(newValue)")
+            if newValue {
                 // Fix 4: Start Live Activity when broadcast begins
+                print("🔴 Broadcast became active — starting Live Activity")
                 liveActivityManager.startLiveActivity()
             } else if liveActivityManager.isActivityActive {
                 // Broadcast ended externally — end Live Activity
+                print("⚪ Broadcast ended — stopping Live Activity")
                 liveActivityManager.endLiveActivity()
                 privacyManager.resetConsent()
             }
@@ -266,6 +269,14 @@ struct DynamicIslandOverlay: View {
                     OutlinedButton("🎥 Запис екрану", icon: "record.circle") {
                         startBroadcastFlow()
                     }
+                }
+            }
+
+            // DEBUG: Test Dynamic Island directly (without broadcast)
+            if !SimulatorGuard.isSimulator {
+                OutlinedButton("🧪 Тест Dynamic Island", icon: "sparkles") {
+                    print("🧪 Testing Live Activity directly (no broadcast)...")
+                    liveActivityManager.startLiveActivity()
                 }
             }
 

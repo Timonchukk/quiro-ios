@@ -19,8 +19,14 @@ final class LiveActivityManager: ObservableObject {
 
     /// Call when broadcast starts (after user confirms via RPSystemBroadcastPickerView)
     func startLiveActivity() {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("LiveActivity: Activities not enabled")
+        print("🏝️ LiveActivity: startLiveActivity() called")
+        
+        let authInfo = ActivityAuthorizationInfo()
+        print("🏝️ LiveActivity: areActivitiesEnabled = \(authInfo.areActivitiesEnabled)")
+        print("🏝️ LiveActivity: frequentPushesEnabled = \(authInfo.frequentPushesEnabled)")
+        
+        guard authInfo.areActivitiesEnabled else {
+            print("❌ LiveActivity: Activities NOT enabled! User must enable in Settings → Quiro → Live Activities")
             return
         }
 
@@ -42,9 +48,12 @@ final class LiveActivityManager: ObservableObject {
             )
             currentActivity = activity
             isActivityActive = true
-            print("LiveActivity: Started with id \(activity.id)")
+            print("✅ LiveActivity: Started successfully! ID=\(activity.id)")
+            print("✅ LiveActivity: Current activities count: \(Activity<QuiroActivityAttributes>.activities.count)")
         } catch {
-            print("LiveActivity: Failed to start — \(error)")
+            print("❌ LiveActivity: FAILED to start!")
+            print("❌ LiveActivity: Error: \(error.localizedDescription)")
+            print("❌ LiveActivity: Full error: \(error)")
         }
     }
 
