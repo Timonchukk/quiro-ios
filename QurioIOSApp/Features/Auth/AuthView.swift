@@ -1,23 +1,30 @@
 import SwiftUI
 
-/// Auth screen redesigned to match Android's AuthScreen.kt.
-/// Card-based layout with outlined fields, indigo accent, text logo with pulse.
+/// Auth screen — light iOS style matching Android's AuthScreen.kt.
+/// Card-based layout with outlined fields, indigo accent, system font.
 struct AuthView: View {
     @StateObject private var viewModel = AuthViewModel()
-    @Environment(\.appTheme) var theme
+    @Environment(\.colorScheme) var colorScheme
+    
+    // Light theme colors (matching Android LightColorScheme)
+    private let bgColor = Color(red: 0.973, green: 0.980, blue: 1.0)         // #F8FAFF
+    private let surfaceColor = Color.white                                      // #FFFFFF
+    private let borderColor = Color(red: 0.910, green: 0.910, blue: 0.941)    // #E8E8F0
+    private let textPrimary = Color(red: 0.059, green: 0.059, blue: 0.102)    // #0F0F1A
+    private let textMuted = Color(red: 0.420, green: 0.447, blue: 0.502)      // #6B7280
+    private let accentIndigo = Color(red: 0.388, green: 0.400, blue: 0.945)   // #6366F1
+    private let inputBg = Color(red: 0.945, green: 0.953, blue: 0.976)        // #F1F3F9
     
     var body: some View {
         ZStack {
-            // Background — solid dark, matches Android DarkBg #050505
-            Color(red: 0.02, green: 0.02, blue: 0.02)
-                .ignoresSafeArea()
+            bgColor.ignoresSafeArea()
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     Spacer().frame(height: 80)
                     
-                    // Logo (text-based, matches Android QurioLogo)
-                    QurioLogo()
+                    // Logo
+                    QuiroLogo(textColor: textPrimary, accentColor: accentIndigo)
                     
                     Spacer().frame(height: 32)
                     
@@ -34,7 +41,6 @@ struct AuthView: View {
                                 .padding(.bottom, 16)
                         }
                         
-                        // Content based on state
                         switch viewModel.screenState {
                         case .login:
                             loginContent
@@ -51,18 +57,20 @@ struct AuthView: View {
                     .padding(24)
                     .background(
                         RoundedRectangle(cornerRadius: 24)
-                            .fill(Color(red: 0.047, green: 0.047, blue: 0.047)) // #0C0C0C
+                            .fill(surfaceColor)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 24)
-                            .stroke(Color(red: 0.133, green: 0.133, blue: 0.133), lineWidth: 1) // #222222
+                            .stroke(borderColor, lineWidth: 1)
                     )
+                    .shadow(color: Color.black.opacity(0.04), radius: 12, y: 4)
                     
                     Spacer().frame(height: 40)
                 }
                 .padding(.horizontal, 28)
             }
         }
+        .preferredColorScheme(.light)
     }
     
     // MARK: - Login
@@ -71,71 +79,74 @@ struct AuthView: View {
         VStack(spacing: 0) {
             Text("Увійти")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(textPrimary)
             
             Spacer().frame(height: 4)
             
             HStack(spacing: 4) {
                 Text("Ще немає акаунту?")
-                    .foregroundColor(.authTextMuted)
+                    .foregroundColor(textMuted)
                 Button("Створити") {
                     viewModel.errorMessage = nil
                     viewModel.screenState = .register
                 }
-                .foregroundColor(.authAccent)
+                .foregroundColor(accentIndigo)
                 .fontWeight(.semibold)
             }
             .font(.system(size: 14))
             
             Spacer().frame(height: 20)
             
-            // Google button first (matches Android layout order)
             googleSignInButton
-            
-            // Terms notice
             googleTermsNotice
             
             Spacer().frame(height: 16)
             orDivider
             Spacer().frame(height: 16)
             
-            // Email
-            AuthOutlinedField(
+            LightAuthField(
                 value: $viewModel.loginEmail,
                 label: "Електронна пошта",
                 placeholder: "alex@email.com",
-                keyboardType: .emailAddress
+                keyboardType: .emailAddress,
+                labelColor: textPrimary,
+                placeholderColor: textMuted,
+                bgColor: inputBg,
+                borderColor: borderColor,
+                accentColor: accentIndigo
             )
             
             Spacer().frame(height: 12)
             
-            // Password
-            AuthOutlinedField(
+            LightAuthField(
                 value: $viewModel.loginPassword,
                 label: "Пароль",
                 placeholder: "Ваш пароль",
                 isSecure: !viewModel.showLoginPassword,
                 showToggle: true,
                 isPasswordVisible: viewModel.showLoginPassword,
-                onTogglePassword: { viewModel.showLoginPassword.toggle() }
+                onTogglePassword: { viewModel.showLoginPassword.toggle() },
+                labelColor: textPrimary,
+                placeholderColor: textMuted,
+                bgColor: inputBg,
+                borderColor: borderColor,
+                accentColor: accentIndigo
             )
             
             Spacer().frame(height: 20)
             
-            // Login button
-            PrimaryActionButton("Увійти →", isLoading: viewModel.isLoading) {
+            LightPrimaryButton("Увійти →", accentColor: accentIndigo, isLoading: viewModel.isLoading) {
                 Task { await viewModel.login() }
             }
             
             Spacer().frame(height: 12)
             
-            // Forgot password
             Button("Забули пароль?") {
                 viewModel.errorMessage = nil
                 viewModel.screenState = .forgotPassword
             }
             .font(.system(size: 14, weight: .semibold))
-            .foregroundColor(.authAccent)
+            .foregroundColor(accentIndigo)
         }
     }
     
@@ -145,18 +156,18 @@ struct AuthView: View {
         VStack(spacing: 0) {
             Text("Створити акаунт")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(textPrimary)
             
             Spacer().frame(height: 4)
             
             HStack(spacing: 4) {
                 Text("Вже є акаунт?")
-                    .foregroundColor(.authTextMuted)
+                    .foregroundColor(textMuted)
                 Button("Увійти") {
                     viewModel.errorMessage = nil
                     viewModel.screenState = .login
                 }
-                .foregroundColor(.authAccent)
+                .foregroundColor(accentIndigo)
                 .fontWeight(.semibold)
             }
             .font(.system(size: 14))
@@ -170,45 +181,23 @@ struct AuthView: View {
             orDivider
             Spacer().frame(height: 16)
             
-            AuthOutlinedField(
-                value: $viewModel.registerName,
-                label: "Повне ім'я",
-                placeholder: "Олексій Коваль"
-            )
+            LightAuthField(value: $viewModel.registerName, label: "Повне ім'я", placeholder: "Олексій Коваль", labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 12)
             
-            AuthOutlinedField(
-                value: $viewModel.registerEmail,
-                label: "Електронна пошта",
-                placeholder: "alex@email.com",
-                keyboardType: .emailAddress
-            )
+            LightAuthField(value: $viewModel.registerEmail, label: "Електронна пошта", placeholder: "alex@email.com", keyboardType: .emailAddress, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 12)
             
-            AuthOutlinedField(
-                value: $viewModel.registerPassword,
-                label: "Пароль",
-                placeholder: "Мінімум 8 символів",
-                isSecure: !viewModel.showRegisterPassword,
-                showToggle: true,
-                isPasswordVisible: viewModel.showRegisterPassword,
-                onTogglePassword: { viewModel.showRegisterPassword.toggle() }
-            )
+            LightAuthField(value: $viewModel.registerPassword, label: "Пароль", placeholder: "Мінімум 8 символів", isSecure: !viewModel.showRegisterPassword, showToggle: true, isPasswordVisible: viewModel.showRegisterPassword, onTogglePassword: { viewModel.showRegisterPassword.toggle() }, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 12)
             
-            AuthOutlinedField(
-                value: $viewModel.registerPassword2,
-                label: "Підтвердіть пароль",
-                placeholder: "Повторіть пароль",
-                isSecure: !viewModel.showRegisterPassword
-            )
+            LightAuthField(value: $viewModel.registerPassword2, label: "Підтвердіть пароль", placeholder: "Повторіть пароль", isSecure: !viewModel.showRegisterPassword, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 16)
             
-            PrimaryActionButton("Створити акаунт →", isLoading: viewModel.isLoading) {
+            LightPrimaryButton("Створити акаунт →", accentColor: accentIndigo, isLoading: viewModel.isLoading) {
                 Task { await viewModel.register() }
             }
         }
@@ -225,28 +214,23 @@ struct AuthView: View {
             
             Text("Підтвердіть email")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(textPrimary)
             
             Spacer().frame(height: 8)
             
             Text("Ми надіслали 6-значний код на\n\(viewModel.verifyEmail)")
                 .font(.system(size: 14))
-                .foregroundColor(.authTextMuted)
+                .foregroundColor(textMuted)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
             
             Spacer().frame(height: 24)
             
-            AuthOutlinedField(
-                value: $viewModel.verifyCode,
-                label: "Код підтвердження",
-                placeholder: "000000",
-                keyboardType: .numberPad
-            )
+            LightAuthField(value: $viewModel.verifyCode, label: "Код підтвердження", placeholder: "000000", keyboardType: .numberPad, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 20)
             
-            PrimaryActionButton("Підтвердити →", isLoading: viewModel.isLoading) {
+            LightPrimaryButton("Підтвердити →", accentColor: accentIndigo, isLoading: viewModel.isLoading) {
                 Task { await viewModel.verify() }
             }
             
@@ -254,11 +238,11 @@ struct AuthView: View {
             
             HStack(spacing: 4) {
                 Text("Не отримали?")
-                    .foregroundColor(.authTextMuted)
+                    .foregroundColor(textMuted)
                 Button("Надіслати ще раз") {
                     Task { await viewModel.resendCode() }
                 }
-                .foregroundColor(.authAccent)
+                .foregroundColor(accentIndigo)
                 .fontWeight(.semibold)
             }
             .font(.system(size: 13))
@@ -276,28 +260,23 @@ struct AuthView: View {
             
             Text("Забули пароль?")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(textPrimary)
             
             Spacer().frame(height: 8)
             
             Text("Введіть email, і ми надішлемо\nкод для скидання паролю.")
                 .font(.system(size: 14))
-                .foregroundColor(.authTextMuted)
+                .foregroundColor(textMuted)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
             
             Spacer().frame(height: 24)
             
-            AuthOutlinedField(
-                value: $viewModel.forgotEmail,
-                label: "Електронна пошта",
-                placeholder: "alex@email.com",
-                keyboardType: .emailAddress
-            )
+            LightAuthField(value: $viewModel.forgotEmail, label: "Електронна пошта", placeholder: "alex@email.com", keyboardType: .emailAddress, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 20)
             
-            PrimaryActionButton("Надіслати код →", isLoading: viewModel.isLoading) {
+            LightPrimaryButton("Надіслати код →", accentColor: accentIndigo, isLoading: viewModel.isLoading) {
                 Task { await viewModel.forgotPassword() }
             }
             
@@ -308,7 +287,7 @@ struct AuthView: View {
                 viewModel.screenState = .login
             }
             .font(.system(size: 14, weight: .semibold))
-            .foregroundColor(.authAccent)
+            .foregroundColor(accentIndigo)
         }
     }
     
@@ -323,48 +302,30 @@ struct AuthView: View {
             
             Text("Новий пароль")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(textPrimary)
             
             Spacer().frame(height: 8)
             
             Text("Введіть код з листа та новий пароль")
                 .font(.system(size: 14))
-                .foregroundColor(.authTextMuted)
+                .foregroundColor(textMuted)
                 .multilineTextAlignment(.center)
             
             Spacer().frame(height: 24)
             
-            AuthOutlinedField(
-                value: $viewModel.resetCode,
-                label: "Код з листа",
-                placeholder: "123456",
-                keyboardType: .numberPad
-            )
+            LightAuthField(value: $viewModel.resetCode, label: "Код з листа", placeholder: "123456", keyboardType: .numberPad, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 12)
             
-            AuthOutlinedField(
-                value: $viewModel.resetPassword,
-                label: "Новий пароль",
-                placeholder: "Мінімум 8 символів",
-                isSecure: !viewModel.showResetPassword,
-                showToggle: true,
-                isPasswordVisible: viewModel.showResetPassword,
-                onTogglePassword: { viewModel.showResetPassword.toggle() }
-            )
+            LightAuthField(value: $viewModel.resetPassword, label: "Новий пароль", placeholder: "Мінімум 8 символів", isSecure: !viewModel.showResetPassword, showToggle: true, isPasswordVisible: viewModel.showResetPassword, onTogglePassword: { viewModel.showResetPassword.toggle() }, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 12)
             
-            AuthOutlinedField(
-                value: $viewModel.resetPassword2,
-                label: "Підтвердіть пароль",
-                placeholder: "Повторіть пароль",
-                isSecure: !viewModel.showResetPassword
-            )
+            LightAuthField(value: $viewModel.resetPassword2, label: "Підтвердіть пароль", placeholder: "Повторіть пароль", isSecure: !viewModel.showResetPassword, labelColor: textPrimary, placeholderColor: textMuted, bgColor: inputBg, borderColor: borderColor, accentColor: accentIndigo)
             
             Spacer().frame(height: 20)
             
-            PrimaryActionButton("Скинути пароль →", isLoading: viewModel.isLoading) {
+            LightPrimaryButton("Скинути пароль →", accentColor: accentIndigo, isLoading: viewModel.isLoading) {
                 Task { await viewModel.doResetPassword() }
             }
             
@@ -372,11 +333,11 @@ struct AuthView: View {
             
             HStack(spacing: 4) {
                 Text("Не отримали?")
-                    .foregroundColor(.authTextMuted)
+                    .foregroundColor(textMuted)
                 Button("Надіслати ще раз") {
                     Task { await viewModel.resendCode() }
                 }
-                .foregroundColor(.authAccent)
+                .foregroundColor(accentIndigo)
                 .fontWeight(.semibold)
             }
             .font(.system(size: 13))
@@ -388,20 +349,20 @@ struct AuthView: View {
     private func errorBanner(message: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(Color(red: 0.97, green: 0.27, blue: 0.27)) // #F84444
+                .foregroundColor(Color(red: 0.937, green: 0.267, blue: 0.267))
             Text(message)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(red: 0.97, green: 0.27, blue: 0.27))
+                .foregroundColor(Color(red: 0.937, green: 0.267, blue: 0.267))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 0.27, green: 0.04, blue: 0.04).opacity(0.5)) // dark red container
+                .fill(Color(red: 0.996, green: 0.949, blue: 0.949)) // #FEF2F2
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color(red: 0.97, green: 0.27, blue: 0.27).opacity(0.4), lineWidth: 1)
+                .stroke(Color(red: 0.937, green: 0.267, blue: 0.267).opacity(0.3), lineWidth: 1)
         )
     }
     
@@ -417,20 +378,20 @@ struct AuthView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 0.02, green: 0.18, blue: 0.09).opacity(0.5))
+                .fill(Color(red: 0.926, green: 0.992, blue: 0.961)) // #ECFDF5
         )
     }
     
     private var orDivider: some View {
         HStack(spacing: 16) {
             Rectangle()
-                .fill(Color(red: 0.133, green: 0.133, blue: 0.133)) // #222222
+                .fill(borderColor)
                 .frame(height: 1)
             Text("або")
                 .font(.system(size: 13))
-                .foregroundColor(.authTextMuted)
+                .foregroundColor(textMuted)
             Rectangle()
-                .fill(Color(red: 0.133, green: 0.133, blue: 0.133))
+                .fill(borderColor)
                 .frame(height: 1)
         }
     }
@@ -443,17 +404,17 @@ struct AuthView: View {
                     .foregroundColor(Color(red: 0.259, green: 0.522, blue: 0.957)) // #4285F4
                 Text("Продовжити з Google")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.authTextPrimary)
+                    .foregroundColor(textPrimary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(Color(red: 0.047, green: 0.047, blue: 0.047)) // surface #0C0C0C
+                    .fill(surfaceColor)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color(red: 0.133, green: 0.133, blue: 0.133), lineWidth: 1) // #222222
+                    .stroke(borderColor, lineWidth: 1)
             )
         }
     }
@@ -461,34 +422,44 @@ struct AuthView: View {
     private var googleTermsNotice: some View {
         Text("Продовжуючи, ви приймаєте Умови використання та Політику конфіденційності")
             .font(.system(size: 11))
-            .foregroundColor(.authTextMuted)
+            .foregroundColor(textMuted)
             .multilineTextAlignment(.center)
             .padding(.top, 8)
     }
 }
 
-// MARK: - Auth Colors (matching Android Theme.kt dark scheme)
+// MARK: - Quiro Logo
 
-extension Color {
-    // Accent indigo — matches Android Accent #6366F1
-    static let authAccent = Color(red: 0.388, green: 0.400, blue: 0.945) // #6366F1
+struct QuiroLogo: View {
+    var textColor: Color = .black
+    var accentColor: Color = Color(red: 0.388, green: 0.400, blue: 0.945)
     
-    // Dark accent for hover — #4F46E5
-    static let authAccentHover = Color(red: 0.310, green: 0.275, blue: 0.898)
+    @State private var scale: CGFloat = 1.0
     
-    // Text colors — matches Android DarkInk #F0EEFF
-    static let authTextPrimary = Color(red: 0.941, green: 0.933, blue: 1.0) // #F0EEFF
-    
-    // Muted text — matches Android DarkMuted #9CA3AF
-    static let authTextMuted = Color(red: 0.612, green: 0.639, blue: 0.686) // #9CA3AF
-    
-    // Dark primary (for dark scheme) — #818CF8
-    static let authAccentLight = Color(red: 0.506, green: 0.549, blue: 0.973) // #818CF8
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Quiro")
+                .font(.system(size: 32, weight: .heavy, design: .rounded))
+                .foregroundColor(textColor)
+            Text(".")
+                .font(.system(size: 32, weight: .heavy, design: .rounded))
+                .foregroundColor(accentColor)
+        }
+        .scaleEffect(scale)
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: 2.0)
+                .repeatForever(autoreverses: true)
+            ) {
+                scale = 1.03
+            }
+        }
+    }
 }
 
-// MARK: - Outlined Text Field (matches Android OutlinedTextField)
+// MARK: - Light Auth Text Field
 
-struct AuthOutlinedField: View {
+struct LightAuthField: View {
     @Binding var value: String
     let label: String
     let placeholder: String
@@ -498,23 +469,19 @@ struct AuthOutlinedField: View {
     var isPasswordVisible: Bool = false
     var onTogglePassword: (() -> Void)? = nil
     
+    var labelColor: Color
+    var placeholderColor: Color
+    var bgColor: Color
+    var borderColor: Color
+    var accentColor: Color
+    
     @FocusState private var isFocused: Bool
-    
-    private var borderColor: Color {
-        isFocused ? .authAccentLight : Color(red: 0.133, green: 0.133, blue: 0.133) // #222222
-    }
-    
-    private var bgColor: Color {
-        isFocused
-            ? Color(red: 0.047, green: 0.047, blue: 0.047) // #0C0C0C
-            : Color(red: 0.067, green: 0.067, blue: 0.067).opacity(0.4) // surfaceVariant
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.authTextPrimary)
+                .foregroundColor(labelColor)
             
             HStack(spacing: 0) {
                 if isSecure {
@@ -532,21 +499,21 @@ struct AuthOutlinedField: View {
                     Button(action: onTogglePassword) {
                         Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                             .font(.system(size: 16))
-                            .foregroundColor(.authTextMuted)
+                            .foregroundColor(placeholderColor)
                     }
                     .padding(.leading, 8)
                 }
             }
-            .foregroundColor(.authTextPrimary)
+            .foregroundColor(labelColor)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(bgColor)
+                    .fill(isFocused ? Color.white : bgColor.opacity(0.4))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(isFocused ? accentColor : borderColor, lineWidth: 1)
             )
             .animation(.easeInOut(duration: 0.15), value: isFocused)
         }
@@ -555,15 +522,17 @@ struct AuthOutlinedField: View {
     }
 }
 
-// MARK: - Primary Action Button (matches Android PrimaryButton)
+// MARK: - Light Primary Button
 
-struct PrimaryActionButton: View {
+struct LightPrimaryButton: View {
     let title: String
+    let accentColor: Color
     let isLoading: Bool
     let action: () -> Void
     
-    init(_ title: String, isLoading: Bool = false, action: @escaping () -> Void) {
+    init(_ title: String, accentColor: Color, isLoading: Bool = false, action: @escaping () -> Void) {
         self.title = title
+        self.accentColor = accentColor
         self.isLoading = isLoading
         self.action = action
     }
@@ -585,35 +554,9 @@ struct PrimaryActionButton: View {
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isLoading ? Color.authAccent.opacity(0.6) : .authAccent)
+                    .fill(isLoading ? accentColor.opacity(0.6) : accentColor)
             )
         }
         .disabled(isLoading)
-    }
-}
-
-// MARK: - Qurio Logo (text-based, matches Android QurioLogo)
-
-struct QurioLogo: View {
-    @State private var scale: CGFloat = 1.0
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Qurio")
-                .font(.system(size: 32, weight: .heavy, design: .rounded))
-                .foregroundColor(.authTextPrimary)
-            Text(".")
-                .font(.system(size: 32, weight: .heavy, design: .rounded))
-                .foregroundColor(.authAccentLight)
-        }
-        .scaleEffect(scale)
-        .onAppear {
-            withAnimation(
-                .easeInOut(duration: 2.0)
-                .repeatForever(autoreverses: true)
-            ) {
-                scale = 1.03
-            }
-        }
     }
 }

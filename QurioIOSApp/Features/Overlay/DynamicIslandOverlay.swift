@@ -521,7 +521,7 @@ struct DynamicIslandOverlay: View {
 
     private var statusLabel: String {
         switch status {
-        case .idle: return broadcastReceiver.isBroadcastActive ? "🔴 Запис" : "Qurio"
+        case .idle: return broadcastReceiver.isBroadcastActive ? "🔴 Запис" : "Quiro"
         case .capturing: return "Зйомка..."
         case .thinking: return "Думаю..."
         case .done: return "Готово"

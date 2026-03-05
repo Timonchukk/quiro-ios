@@ -46,7 +46,7 @@ struct ProfileView: View {
                     }
                     
                     // App Version
-                    Text("Qurio iOS v1.0.0")
+                    Text("Quiro iOS v1.0.0")
                         .font(.system(size: 12))
                         .foregroundColor(theme.textTertiary)
                         .padding(.top, 8)
@@ -83,7 +83,7 @@ struct ProfileView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(settings.userName.isEmpty ? "Qurio User" : settings.userName)
+                    Text(settings.userName.isEmpty ? "Quiro User" : settings.userName)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(theme.textPrimary)
                     

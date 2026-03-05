@@ -223,7 +223,7 @@ struct HistoryView: View {
     // MARK: - PDF Text Generation
     
     private func generateHistoryText() -> String {
-        var text = "Qurio — Історія запитів\n\n"
+        var text = "Quiro — Історія запитів\n\n"
         for entry in historyRepo.historyEntries {
             let date = Date(timeIntervalSince1970: Double(entry.timestamp) / 1000)
             let formatter = DateFormatter()
@@ -331,7 +331,7 @@ struct HistoryEntryCard: View {
         }
         .sheet(isPresented: $showPdfShare) {
             if let pdfData = generatePDF(for: entry) {
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Qurio_\(formatDateFile(entry.timestamp)).pdf")
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Quiro_\(formatDateFile(entry.timestamp)).pdf")
                 let _ = try? pdfData.write(to: tempURL)
                 ShareSheet(items: [tempURL])
             }
@@ -425,7 +425,7 @@ struct HistoryEntryCard: View {
             
             // Title
             let titleAttr: [NSAttributedString.Key: Any] = [.font: titleFont, .foregroundColor: UIColor.label]
-            NSAttributedString(string: entry.question.hasPrefix("📝") ? "Qurio — Конспект" : "Qurio — AI Відповідь", attributes: titleAttr)
+            NSAttributedString(string: entry.question.hasPrefix("📝") ? "Quiro — Конспект" : "Quiro — AI Відповідь", attributes: titleAttr)
                 .draw(in: CGRect(x: margin, y: y, width: contentWidth, height: 30))
             y += 36
             

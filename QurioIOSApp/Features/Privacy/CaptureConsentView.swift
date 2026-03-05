@@ -42,13 +42,13 @@ struct CaptureConsentView: View {
                     consentPoint(
                         icon: "icloud.and.arrow.up",
                         title: "Передача на AI сервер",
-                        detail: "Знімки екрану надсилаються на сервер Qurio для аналізу AI. Вони НЕ зберігаються після обробки."
+                        detail: "Знімки екрану надсилаються на сервер Quiro для аналізу AI. Вони НЕ зберігаються після обробки."
                     )
 
                     consentPoint(
                         icon: "hand.raised.fill",
                         title: "Повний контроль",
-                        detail: "Ви можете зупинити запис у будь-який час через панель Qurio або Центр керування iOS."
+                        detail: "Ви можете зупинити запис у будь-який час через панель Quiro або Центр керування iOS."
                     )
 
                     consentPoint(

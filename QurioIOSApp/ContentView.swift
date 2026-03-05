@@ -11,11 +11,6 @@ struct ContentView: View {
         Group {
             if !settings.isLoggedIn {
                 AuthView()
-            } else if !settings.onboardingCompleted {
-                OnboardingView(
-                    onSkip: { settings.onboardingCompleted = true },
-                    onComplete: { settings.onboardingCompleted = true }
-                )
             } else {
                 MainView()
             }

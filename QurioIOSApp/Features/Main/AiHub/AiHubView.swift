@@ -21,7 +21,7 @@ struct AiHubView: View {
                     // Stats Row
                     statsRow
                     
-                    // Action Button (Start/Stop Qurio)
+                    // Action Button (Start/Stop Quiro)
                     actionButton
                     
                     // Quick Actions Grid
@@ -50,7 +50,7 @@ struct AiHubView: View {
                             .font(.system(size: 26, weight: .bold, design: .rounded))
                             .foregroundColor(theme.textPrimary)
                         
-                        Text(settings.userName.isEmpty ? "Qurio AI" : settings.userName)
+                        Text(settings.userName.isEmpty ? "Quiro AI" : settings.userName)
                             .font(.system(size: 15))
                             .foregroundColor(theme.textSecondary)
                     }
@@ -128,7 +128,7 @@ struct AiHubView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(showOverlay ? "Зупинити Qurio" : "Запустити Qurio")
+                    Text(showOverlay ? "Зупинити Quiro" : "Запустити Quiro")
                         .font(.system(size: 17, weight: .bold))
                     
                     if !showOverlay {

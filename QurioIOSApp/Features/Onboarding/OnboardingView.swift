@@ -12,21 +12,21 @@ struct OnboardingView: View {
     private let steps: [OnboardingStep] = [
         OnboardingStep(
             title: "Ласкаво просимо!",
-            subtitle: "Qurio — твій AI-асистент для навчання",
+            subtitle: "Quiro — твій AI-асистент для навчання",
             icon: "brain.head.profile",
-            description: "Qurio допомагає тобі з домашніми завданнями, тестами та підготовкою до іспитів. Просто зроби скріншот — і отримай відповідь!",
+            description: "Quiro допомагає тобі з домашніми завданнями, тестами та підготовкою до іспитів. Просто зроби скріншот — і отримай відповідь!",
             color: .accentPurple
         ),
         OnboardingStep(
             title: "Як це працює?",
-            subtitle: "Крок 1: Запусти Qurio",
+            subtitle: "Крок 1: Запусти Quiro",
             icon: "play.circle.fill",
-            description: "Натисни кнопку «Запустити Qurio» на головному екрані. З'явиться плаваюча панель (Dynamic Island) зверху екрану.",
+            description: "Натисни кнопку «Запустити Quiro» на головному екрані. З'явиться плаваюча панель (Dynamic Island) зверху екрану.",
             color: .accentPurple
         ),
         OnboardingStep(
             title: "Плаваюча панель",
-            subtitle: "Крок 2: Панель Qurio",
+            subtitle: "Крок 2: Панель Quiro",
             icon: "rectangle.portrait.on.rectangle.portrait",
             description: "Панель відображається зверху екрану і доступна з будь-якого додатку. Вона має стани: Готовий, Зйомка, Думаю, Відповідь.",
             color: .violet
@@ -35,14 +35,14 @@ struct OnboardingView: View {
             title: "Зйомка екрану",
             subtitle: "Крок 3: Зроби скріншот",
             icon: "camera.fill",
-            description: "Відкрий питання в будь-якому додатку (підручник, тест, PDF) і натисни кнопку 📸 на панелі Qurio. AI проаналізує скріншот і дасть відповідь.",
+            description: "Відкрий питання в будь-якому додатку (підручник, тест, PDF) і натисни кнопку 📸 на панелі Quiro. AI проаналізує скріншот і дасть відповідь.",
             color: .summaryGreen
         ),
         OnboardingStep(
             title: "Відповідь AI",
             subtitle: "Крок 4: Отримай відповідь",
             icon: "lightbulb.fill",
-            description: "Qurio покаже правильну відповідь з поясненням. Ти можеш скопіювати текст або поскаржитись, якщо відповідь неправильна.",
+            description: "Quiro покаже правильну відповідь з поясненням. Ти можеш скопіювати текст або поскаржитись, якщо відповідь неправильна.",
             color: .yellowDot
         ),
         OnboardingStep(
@@ -56,21 +56,21 @@ struct OnboardingView: View {
             title: "Конспекти",
             subtitle: "Крок 6: Створюй конспекти",
             icon: "doc.text.fill",
-            description: "Зроби 1-5 скріншотів навчального матеріалу і Qurio створить структурований конспект. Доступно для Pro користувачів.",
+            description: "Зроби 1-5 скріншотів навчального матеріалу і Quiro створить структурований конспект. Доступно для Pro користувачів.",
             color: .summaryGreen
         ),
         OnboardingStep(
             title: "Тести",
             subtitle: "Крок 7: Перевір знання",
             icon: "checkmark.circle.fill",
-            description: "З конспекту можна одразу згенерувати тест! Qurio створить запитання з варіантами відповідей і покаже результат.",
+            description: "З конспекту можна одразу згенерувати тест! Quiro створить запитання з варіантами відповідей і покаже результат.",
             color: .violet
         ),
         OnboardingStep(
             title: "Серія навчання",
             subtitle: "Крок 8: Будуй серію!",
             icon: "flame.fill",
-            description: "Використовуй Qurio кожен день і отримуй нагороди! За серію 7 днів — 5 днів Pro безкоштовно. За 30 днів — цілий тиждень Pro!",
+            description: "Використовуй Quiro кожен день і отримуй нагороди! За серію 7 днів — 5 днів Pro безкоштовно. За 30 днів — цілий тиждень Pro!",
             color: .streakOrange
         ),
         OnboardingStep(
@@ -84,7 +84,7 @@ struct OnboardingView: View {
             title: "Приватність",
             subtitle: "Крок 10: Твої дані захищені",
             icon: "lock.shield.fill",
-            description: "Qurio використовує скріншоти ТІЛЬКИ для аналізу AI. Зображення не зберігаються на серверах. Увімкни Режим приватності для повної анонімності.",
+            description: "Quiro використовує скріншоти ТІЛЬКИ для аналізу AI. Зображення не зберігаються на серверах. Увімкни Режим приватності для повної анонімності.",
             color: .accentPurple
         ),
         OnboardingStep(
@@ -96,7 +96,7 @@ struct OnboardingView: View {
         ),
         OnboardingStep(
             title: "Готово!",
-            subtitle: "Ти готовий навчатися з Qurio!",
+            subtitle: "Ти готовий навчатися з Quiro!",
             icon: "rocket.fill",
             description: "Натисни «Почати» і спробуй свій перший запит. Залишилось 10 безкоштовних запитів для тестування. Успіхів! 🎉",
             color: .accentPurple

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Central configuration constants for the Qurio iOS app.
+/// Central configuration constants for the Quiro iOS app.
 enum Config {
     // MARK: - Server
     static let serverBaseURL = "https://quirhelp.com"
