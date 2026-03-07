@@ -3,8 +3,13 @@ import SwiftUI
 // MARK: - Color Palette (mirrors Theme.kt)
 
 extension Color {
-    static let accentPurple = Color(red: 0x7C/255, green: 0x4D/255, blue: 0xFF/255) // #7C4DFF
-    static let violet = Color(red: 0xBB/255, green: 0x86/255, blue: 0xFC/255)       // #BB86FC
+    // Primary blue/cyan accent palette
+    static let accentBlue = Color(red: 0.20, green: 0.49, blue: 0.96)               // #337DF5
+    static let accentSky  = Color(red: 0.33, green: 0.67, blue: 0.98)               // #54ABFA
+    
+    // Legacy (kept for compatibility but replaced by accentBlue/accentSky)
+    static let accentPurple = accentBlue
+    static let violet = accentSky
     static let accentRed = Color(red: 0xF4/255, green: 0x43/255, blue: 0x36/255)    // #F44336
     static let summaryGreen = Color(red: 0x10/255, green: 0xB9/255, blue: 0x81/255) // #10B981
     static let yellowDot = Color(red: 0xE5/255, green: 0xA1/255, blue: 0x00/255)    // #E5A100
@@ -72,7 +77,7 @@ struct AppTheme {
     
     var accentGradient: LinearGradient {
         LinearGradient(
-            colors: [.accentPurple, .violet],
+            colors: [.accentBlue, .accentSky],
             startPoint: .leading,
             endPoint: .trailing
         )
@@ -90,7 +95,7 @@ struct AppTheme {
 // MARK: - Theme Environment Key
 
 struct ThemeKey: EnvironmentKey {
-    static let defaultValue = AppTheme(isDark: true)
+    static let defaultValue = AppTheme(isDark: false)
 }
 
 extension EnvironmentValues {

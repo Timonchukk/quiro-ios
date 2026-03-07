@@ -121,7 +121,7 @@ struct HistoryView: View {
                         RoundedRectangle(cornerRadius: DesignTokens.radiusSmall)
                             .fill(
                                 LinearGradient(
-                                    colors: [.accentPurple, .violet],
+                                    colors: [.accentBlue, .accentSky],
                                     startPoint: .leading, endPoint: .trailing
                                 )
                             )

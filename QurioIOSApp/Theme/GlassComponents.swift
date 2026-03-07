@@ -114,13 +114,13 @@ struct AccentButton: View {
             .padding(.vertical, 15)
             .background(
                 LinearGradient(
-                    colors: enabled ? [.accentPurple, .violet] : [.gray, .gray.opacity(0.7)],
+                    colors: enabled ? [.accentBlue, .accentSky] : [.gray, .gray.opacity(0.7)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.radiusMedium))
-            .shadow(color: (enabled ? Color.accentPurple : .gray).opacity(0.3), radius: 8, y: 4)
+            .shadow(color: (enabled ? Color.accentBlue : .gray).opacity(0.3), radius: 8, y: 4)
         }
         .disabled(!enabled || isLoading)
     }
@@ -152,7 +152,7 @@ struct OutlinedButton: View {
                 Text(title)
                     .font(.system(size: 15, weight: .medium))
             }
-            .foregroundColor(.accentPurple)
+            .foregroundColor(.accentBlue)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 13)
             .background(
@@ -161,7 +161,7 @@ struct OutlinedButton: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: DesignTokens.radiusMedium)
-                    .stroke(Color.accentPurple.opacity(0.35), lineWidth: 1)
+                    .stroke(Color.accentBlue.opacity(0.35), lineWidth: 1)
             )
         }
     }

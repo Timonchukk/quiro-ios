@@ -153,14 +153,14 @@ struct AiHubView: View {
                 LinearGradient(
                     colors: showOverlay
                         ? [Color.accentRed, Color.accentRed.opacity(0.8)]
-                        : [Color.accentPurple, Color.violet],
+                        : [Color.accentBlue, Color.accentSky],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.radiusLarge))
             .shadow(
-                color: (showOverlay ? Color.accentRed : .accentPurple).opacity(0.35),
+                color: (showOverlay ? Color.accentRed : .accentBlue).opacity(0.35),
                 radius: 14, y: 6
             )
             .scaleEffect(breathScale)
@@ -279,7 +279,7 @@ struct QuickActionTile: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [.accentPurple, .violet],
+                                        colors: [.accentBlue, .accentSky],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -291,7 +291,7 @@ struct QuickActionTile: View {
                         }
                         Spacer()
                         Circle()
-                            .fill(isActive ? Color.accentPurple : Color.gray.opacity(0.25))
+                            .fill(isActive ? Color.accentBlue : Color.gray.opacity(0.25))
                             .frame(width: 8, height: 8)
                     }
                     

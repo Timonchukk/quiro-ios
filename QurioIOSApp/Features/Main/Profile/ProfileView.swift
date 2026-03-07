@@ -71,7 +71,7 @@ struct ProfileView: View {
                 ZStack {
                     Circle()
                         .fill(
-                            LinearGradient(colors: [.accentPurple, .violet],
+                            LinearGradient(colors: [.accentBlue, .accentSky],
                                            startPoint: .topLeading,
                                            endPoint: .bottomTrailing)
                         )
@@ -258,7 +258,7 @@ struct ProfileView: View {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(
                                             LinearGradient(
-                                                colors: [.accentPurple, .violet],
+                                                colors: [.accentBlue, .accentSky],
                                                 startPoint: .leading, endPoint: .trailing
                                             )
                                         )

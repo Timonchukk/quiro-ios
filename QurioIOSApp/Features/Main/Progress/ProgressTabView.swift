@@ -164,7 +164,7 @@ struct MilestoneRow: View {
                             .padding(.vertical, 7)
                             .background(
                                 LinearGradient(
-                                    colors: [.accentPurple, .violet],
+                                    colors: [.accentBlue, .accentSky],
                                     startPoint: .leading, endPoint: .trailing
                                 )
                             )

@@ -272,13 +272,6 @@ struct DynamicIslandOverlay: View {
                 }
             }
 
-            // DEBUG: Test Dynamic Island directly (without broadcast)
-            if !SimulatorGuard.isSimulator {
-                OutlinedButton("🧪 Тест Dynamic Island", icon: "sparkles") {
-                    print("🧪 Testing Live Activity directly (no broadcast)...")
-                    liveActivityManager.startLiveActivity()
-                }
-            }
 
             // Summary Mode — visible for all users, Pro-gated on action
             if settings.hasActiveSubscription {

@@ -1,0 +1,9 @@
+﻿QurioIOSApp/Config.swift
+QurioIOSApp/ContentView.swift
+QurioIOSApp/Features/Auth/AuthView.swift
+QurioIOSApp/Features/Main/AiHub/AiHubView.swift
+QurioIOSApp/Features/Main/History/HistoryView.swift
+QurioIOSApp/Features/Main/Profile/ProfileView.swift
+QurioIOSApp/Features/Onboarding/OnboardingView.swift
+QurioIOSApp/Features/Overlay/DynamicIslandOverlay.swift
+QurioIOSApp/Features/Privacy/CaptureConsentView.swift

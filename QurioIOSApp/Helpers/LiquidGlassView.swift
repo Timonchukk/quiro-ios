@@ -100,7 +100,7 @@ struct GlassButton: View {
         title: String,
         icon: String? = nil,
         gradient: LinearGradient = LinearGradient(
-            colors: [Color.accentPurple, Color.accentPurple.opacity(0.7)],
+            colors: [Color.accentBlue, Color.accentSky],
             startPoint: .leading,
             endPoint: .trailing
         ),
@@ -127,7 +127,7 @@ struct GlassButton: View {
             .padding(.vertical, 14)
             .background(gradient)
             .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: Color.accentPurple.opacity(0.3), radius: 8, y: 4)
+            .shadow(color: Color.accentBlue.opacity(0.3), radius: 8, y: 4)
         }
     }
 }

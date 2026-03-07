@@ -78,7 +78,7 @@ final class LiveActivityManager: ObservableObject {
 
     /// Convenience: mark as "AI processing"
     func markProcessing(framesProcessed: Int = 0) {
-        updateStatus(.processing, text: "AI обробляє...", frames: framesProcessed)
+        updateStatus(.processing, text: "AI думає...", frames: framesProcessed)
     }
 
     /// Convenience: mark as "recording/idle"
@@ -89,6 +89,29 @@ final class LiveActivityManager: ObservableObject {
     /// Convenience: mark as "error"
     func markError(message: String = "Помилка") {
         updateStatus(.error, text: message)
+    }
+
+    /// Convenience: mark as "answered" with AI response text
+    func markAnswered(text: String) {
+        guard let activity = currentActivity else { return }
+
+        let updatedState = QuiroActivityAttributes.ContentState(
+            status: .answered,
+            framesProcessed: 0,
+            statusText: "Відповідь готова",
+            answerText: text
+        )
+
+        Task {
+            await activity.update(
+                ActivityContent(state: updatedState, staleDate: nil)
+            )
+        }
+    }
+
+    /// Convenience: mark as ready for new question (clears answer)
+    func markReady() {
+        updateStatus(.recording, text: "Готовий до запиту")
     }
 
     // MARK: - Stop Live Activity

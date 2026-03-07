@@ -92,7 +92,7 @@ enum OverlayStatus {
 
 // MARK: - Auth State
 
-enum AuthScreenState {
+enum AuthScreenState: Hashable {
     case login
     case register
     case verify

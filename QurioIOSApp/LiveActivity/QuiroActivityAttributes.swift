@@ -9,12 +9,14 @@ struct QuiroActivityAttributes: ActivityAttributes {
         var status: RecordingStatus
         var framesProcessed: Int
         var statusText: String
+        var answerText: String = ""
 
         enum RecordingStatus: String, Codable, Hashable {
             case recording
             case processing
             case idle
             case error
+            case answered      // AI responded — show answer
         }
     }
     var appName: String = "Quiro"
