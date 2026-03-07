@@ -14,3 +14,13 @@ struct CaptureAndAskAIIntent: LiveActivityIntent {
         return .result()
     }
 }
+
+@available(iOS 17.0, *)
+struct StopBroadcastIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Зупинити запис"
+    static var description = IntentDescription("Зупиняє запис екрану Quiro")
+
+    func perform() async throws -> some IntentResult {
+        return .result()
+    }
+}
