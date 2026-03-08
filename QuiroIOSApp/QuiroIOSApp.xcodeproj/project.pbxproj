@@ -43,45 +43,14 @@
 		2C83F7132F58ED7C00AC0B6B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2C83F7222F58ED7E00AC0B6B /* Exceptions for "QurioWidgetExtension" folder in "QurioWidgetExtensionExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 2C83F70E2F58ED7C00AC0B6B /* QurioWidgetExtensionExtension */;
-		};
-		2C83F7322F58EEEF00AC0B6B /* Exceptions for "QurioWidgetExtension" folder in "QuiroIOSApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				QuiroActivityAttributes.swift,
-			);
-			target = 2C83F69D2F587DCC00AC0B6B /* QuiroIOSApp */;
-		};
-		2C83F7342F58F01900AC0B6B /* Exceptions for "QuiroIOSApp" folder in "QuiroIOSApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 2C83F69D2F587DCC00AC0B6B /* QuiroIOSApp */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2C83F6A02F587DCC00AC0B6B /* QuiroIOSApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2C83F7342F58F01900AC0B6B /* Exceptions for "QuiroIOSApp" folder in "QuiroIOSApp" target */,
-			);
 			path = QuiroIOSApp;
 			sourceTree = "<group>";
 		};
 		2C83F7152F58ED7C00AC0B6B /* QurioWidgetExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2C83F7322F58EEEF00AC0B6B /* Exceptions for "QurioWidgetExtension" folder in "QuiroIOSApp" target */,
-				2C83F7222F58ED7E00AC0B6B /* Exceptions for "QurioWidgetExtension" folder in "QurioWidgetExtensionExtension" target */,
-			);
 			path = QurioWidgetExtension;
 			sourceTree = "<group>";
 		};
